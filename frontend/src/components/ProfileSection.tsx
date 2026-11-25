@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Animated, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Card } from '../ui';
@@ -16,7 +16,7 @@ type Props = {
 };
 
 export function ProfileSection({ icon, title, subtitle, children, style, pink = false, decoration, decorationPosition = 'topRight' }: Props) {
-  const heartScale = useRef(new Animated.Value(1)).current;
+  const [heartScale] = useState(() => new Animated.Value(1));
   useEffect(() => {
     if (decoration !== 'hearts') return;
     const pulse = Animated.loop(Animated.sequence([

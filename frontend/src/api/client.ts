@@ -5,7 +5,10 @@ import { Platform } from 'react-native';
  * Production web uses the same-origin API on Vercel. Local web development uses the API
  * server on port 5000; other native/LAN builds can set EXPO_PUBLIC_API_URL explicitly.
  */
-const envUrl = process.env.EXPO_PUBLIC_API_URL?.replace(/\/+$/, '');
+const rawEnvUrl = process.env.EXPO_PUBLIC_API_URL?.replace(/\/+$/, '');
+const envUrl = rawEnvUrl
+  ? (/\/api(?:\/v1)?$/.test(rawEnvUrl) ? rawEnvUrl : `${rawEnvUrl}/api`)
+  : undefined;
 const isLocalWeb = Platform.OS === 'web' && typeof window !== 'undefined' &&
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 const localWebApiUrl = isLocalWeb

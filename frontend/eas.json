@@ -13,7 +13,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://sambandh-setu.vercel.app/api"
+        "EXPO_PUBLIC_API_URL": "https://sambandh-backend-fx20.onrender.com"
       }
     },
     "production": {
@@ -21,7 +21,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://sambandh-setu.vercel.app/api"
+        "EXPO_PUBLIC_API_URL": "https://sambandh-backend-fx20.onrender.com"
       }
     }
   },

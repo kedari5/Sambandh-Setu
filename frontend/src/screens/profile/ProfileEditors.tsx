@@ -9,12 +9,14 @@ import { SchemaFields, summarise } from '../../components/SchemaForm';
 import { BUILDER, EDUCATION, INTENTS, LANGUAGES, LIFESTYLE, OCCUPATIONS, PREFERENCES, PREFERENCE_ORDER, VALUE_OPTIONS } from '../../content/forms';
 import { pickImage } from '../../utils/image';
 import { useLayout } from '../../hooks/useLayout';
+import { ProfileSection } from '../../components/ProfileSection';
 
 const INTEREST_OPTIONS = ['Travel', 'Reading', 'Music', 'Movies', 'Cooking', 'Photography', 'Art', 'Fitness', 'Nature', 'Cricket', 'Yoga', 'Dance', 'Gaming', 'Tech', 'Spirituality', 'Volunteering', 'Food', 'Writing'];
 
 /** Edit Profile: photo, introduction, career, languages, interests, values, intent. */
 export function EditAbout({ navigation }: any) {
   const { user, refresh, setUser } = useAuth();
+  const { wide } = useLayout();
   const toast = useToast();
   const p = user!.profile;
   const [f, setF] = useState({ bio: p.bio, education: p.education, profession: p.profession, languages: p.languages, interests: p.interests, values: p.values, intent: p.intent });
@@ -33,29 +35,48 @@ export function EditAbout({ navigation }: any) {
     } catch (e) { setError(errorMessage(e)); } finally { setBusy(false); }
   };
   return (
-    <Screen title="Edit Profile" subtitle="Keep your profile up to date." back="Main" maxWidth={720}
+    <Screen title="Edit Profile" subtitle="Share the details that help people get to know you." back="Main" maxWidth={820}
       footer={<View style={{ gap: 8 }}>{error ? <InfoNote tone="red" icon="alert-circle" text={error} /> : null}<ButtonRow><Button title="Cancel" variant="ghost" onPress={() => navigation.goBack()} /><Button title="Save changes" onPress={save} loading={busy} /></ButtonRow></View>}>
-      <Card style={{ alignItems: 'center', marginBottom: space.lg }}>
-        <Pressable onPress={photo} accessibilityRole="button" accessibilityLabel="Change photo">
-          {user!.photoUrl ? <Image source={{ uri: assetUrl(user!.photoUrl) }} style={styles.photo} /> : <View style={[styles.photo, styles.noPhoto]}><Ionicons name="camera-outline" size={28} color={colors.primary} /></View>}
-        </Pressable>
-        <View style={{ flexDirection: 'row', gap: 16, marginTop: 8 }}>
-          <TextLink title={user!.photoUrl ? 'Change Photo' : 'Add Photo'} onPress={photo} />
-          {user!.photoUrl ? <TextLink title="Remove" color={colors.dangerStrong} onPress={removePhoto} /> : null}
+      <ProfileSection icon="camera-outline" title="Profile photo" subtitle="A clear photo helps people get to know you.">
+        <View style={styles.photoRow}>
+          <Pressable onPress={photo} accessibilityRole="button" accessibilityLabel="Change photo">
+            {user!.photoUrl ? <Image source={{ uri: assetUrl(user!.photoUrl) }} style={styles.photo} /> : <View style={[styles.photo, styles.noPhoto]}><Ionicons name="camera-outline" size={28} color={colors.primary} /></View>}
+          </Pressable>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.h}>Make a good first impression</Text>
+            <Text style={styles.body}>Use a recent, well-lit photo where your face is easy to see.</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginTop: 8 }}>
+              <TextLink title={user!.photoUrl ? 'Change photo' : 'Add photo'} onPress={photo} />
+              {user!.photoUrl ? <TextLink title="Remove" color={colors.dangerStrong} onPress={removePhoto} /> : null}
+            </View>
+          </View>
         </View>
-        <Text style={styles.small}>JPG, PNG or WebP. A clear photo helps people get to know you.</Text>
-      </Card>
-      <TextField label="About yourself" multiline value={f.bio} onChangeText={(v) => set('bio', v.slice(0, 300))} counter={300} placeholder="Share a few things about yourself" />
-      <SelectField label="Education" value={f.education} options={EDUCATION} onChange={(v) => set('education', v)} icon="school-outline" />
-      <SelectField label="Profession" value={f.profession} options={OCCUPATIONS} onChange={(v) => set('profession', v)} icon="briefcase-outline" />
-      <SelectField label="Looking for" value={f.intent} options={INTENTS.map((i) => ({ value: i.value, label: i.label, description: i.text }))} onChange={(v) => set('intent', v)} icon="heart-outline" />
-      <Text style={styles.label}>Languages you speak</Text>
-      <ChipGroup options={LANGUAGES} value={f.languages} onChange={(v) => set('languages', v)} style={{ marginBottom: space.xl }} />
-      <Text style={styles.label}>Interests</Text>
-      <ChipGroup options={Array.from(new Set([...INTEREST_OPTIONS, ...f.interests]))} value={f.interests} onChange={(v) => set('interests', v)} style={{ marginBottom: space.xl }} />
-      <Text style={styles.label}>Values</Text>
-      <ChipGroup options={Array.from(new Set([...VALUE_OPTIONS.map(([v]) => v), ...f.values]))} value={f.values} onChange={(v) => set('values', v)} />
-      <TextLink title="Edit name, date of birth, height and other personal information" icon="create-outline" size={13} style={{ marginTop: space.xl }} onPress={() => navigation.navigate('EditPersonal')} />
+      </ProfileSection>
+      <ProfileSection icon="chatbubble-ellipses-outline" title="Your introduction" subtitle="A few genuine details make it easier to start a conversation.">
+        <TextField label="About yourself" multiline value={f.bio} onChangeText={(v) => set('bio', v.slice(0, 300))} counter={300} placeholder="Share a few things about yourself" />
+      </ProfileSection>
+      <ProfileSection icon="school-outline" title="Education and work" subtitle="Add a little context about your background.">
+        <View style={wide ? styles.fieldRow : undefined}>
+          <View style={wide ? styles.fieldColumn : undefined}>
+            <SelectField label="Education" value={f.education} options={EDUCATION} onChange={(v) => set('education', v)} icon="school-outline" />
+          </View>
+          <View style={wide ? styles.fieldColumn : undefined}>
+            <SelectField label="Profession" value={f.profession} options={OCCUPATIONS} onChange={(v) => set('profession', v)} icon="briefcase-outline" />
+          </View>
+        </View>
+        <SelectField label="Looking for" value={f.intent} options={INTENTS.map((i) => ({ value: i.value, label: i.label, description: i.text }))} onChange={(v) => set('intent', v)} icon="heart-outline" />
+      </ProfileSection>
+      <ProfileSection icon="sparkles-outline" title="Interests and values" subtitle="Choose the things that feel most like you.">
+        <Text style={styles.label}>Languages you speak</Text>
+        <ChipGroup options={LANGUAGES} value={f.languages} onChange={(v) => set('languages', v)} style={{ marginBottom: space.lg }} />
+        <Text style={styles.label}>Interests</Text>
+        <ChipGroup options={Array.from(new Set([...INTEREST_OPTIONS, ...f.interests]))} value={f.interests} onChange={(v) => set('interests', v)} style={{ marginBottom: space.lg }} />
+        <Text style={styles.label}>Values</Text>
+        <ChipGroup options={Array.from(new Set([...VALUE_OPTIONS.map(([v]) => v), ...f.values]))} value={f.values} onChange={(v) => set('values', v)} />
+      </ProfileSection>
+      <ProfileSection icon="id-card-outline" title="Personal information" subtitle="Update your name, birth date, height, and location.">
+        <TextLink title="Edit personal information" icon="create-outline" size={13} onPress={() => navigation.navigate('EditPersonal')} />
+      </ProfileSection>
     </Screen>
   );
 }
@@ -268,6 +289,9 @@ export function ProfileBuilder({ route, navigation }: any) {
 const styles = StyleSheet.create({
   photo: { width: 110, height: 110, borderRadius: 55, backgroundColor: colors.primarySoft },
   noPhoto: { alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderStyle: 'dashed', borderColor: colors.primary },
+  photoRow: { flexDirection: 'row', alignItems: 'center', gap: space.lg },
+  fieldRow: { flexDirection: 'row', gap: space.md },
+  fieldColumn: { flex: 1 },
   small: { fontFamily: fonts.regular, fontSize: 12, color: colors.muted, marginTop: 4, textAlign: 'center' },
   label: { fontFamily: fonts.semibold, fontSize: 13.5, color: colors.text, marginBottom: 10 },
   h: { fontFamily: fonts.semibold, fontSize: 15, color: colors.text },

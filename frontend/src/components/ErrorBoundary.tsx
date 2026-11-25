@@ -1,5 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { Platform, View, Text, Pressable, StyleSheet } from 'react-native';
 import { colors, fonts, radius, spacing } from '../theme';
 
 interface Props {
@@ -53,7 +53,7 @@ export class ErrorBoundary extends Component<Props, State> {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.xl,
@@ -61,12 +61,12 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 400,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Platform.OS === 'web' ? '#F8FAFC' : colors.bgTint,
     borderRadius: radius.lg,
     padding: spacing.xl,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
   title: {
     fontFamily: fonts.bold,

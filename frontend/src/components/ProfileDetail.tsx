@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
   name: { fontFamily: fonts.bold, fontSize: 22, color: colors.text },
   sub: { fontFamily: fonts.regular, fontSize: 13.5, color: colors.muted, marginTop: 2 },
   online: { backgroundColor: colors.successSoft, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
-  onlineText: { fontFamily: fonts.semibold, fontSize: 11, color: '#0F9F6E' },
+  onlineText: { fontFamily: fonts.semibold, fontSize: 11, color: colors.success },
   factRow: { flexDirection: 'row', gap: 8, marginTop: space.lg },
   fact: { flex: 1, minWidth: 100, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: colors.bgTint, borderRadius: radius.card, padding: 10 },
   factIcon: { width: 32, height: 32, borderRadius: 9, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' },

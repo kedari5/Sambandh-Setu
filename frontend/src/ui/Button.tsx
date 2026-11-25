@@ -6,19 +6,20 @@ import { useLayout } from '../hooks/useLayout';
 import type { IconName } from './Basics';
 
 type Variant = 'primary' | 'secondary' | 'outline' | 'text' | 'danger' | 'dangerOutline' | 'ghost';
+type ColorTone = 'pink' | 'green';
 
 /**
- * Buttons from "03 · Buttons": Primary (Trust Blue fill), Secondary (soft blue tint), Outlined,
+ * Buttons from "03 · Buttons": Primary fill, Secondary tint, Outlined,
  * Text link, plus a destructive variant used by delete/remove confirmations.
  * Pill-shaped on phones (App designs), 10px radius on desktop (Web designs).
  */
-export function Button({ title, onPress, variant = 'primary', loading, disabled, icon, arrow, size = 'md', full = true, style, accessibilityLabel }: {
+export function Button({ title, onPress, variant = 'primary', loading, disabled, icon, arrow, size = 'md', full = true, style, accessibilityLabel, tone }: {
   title: string; onPress?: () => void; variant?: Variant; loading?: boolean; disabled?: boolean; icon?: IconName; arrow?: boolean;
-  size?: 'sm' | 'md' | 'lg'; full?: boolean; style?: StyleProp<ViewStyle>; accessibilityLabel?: string;
+  size?: 'sm' | 'md' | 'lg'; full?: boolean; style?: StyleProp<ViewStyle>; accessibilityLabel?: string; tone?: ColorTone;
 }) {
   const { wide } = useLayout();
   const isDisabled = disabled || loading;
-  const v = VARIANTS[variant];
+  const v = tone ? { ...VARIANTS[variant], ...TONE_VARIANTS[tone][variant] } : VARIANTS[variant];
   const h = size === 'sm' ? 38 : size === 'lg' ? 54 : 48;
   return (
     <Pressable
@@ -32,7 +33,7 @@ export function Button({ title, onPress, variant = 'primary', loading, disabled,
         full ? { alignSelf: 'stretch' } : { alignSelf: 'flex-start' },
         v.box,
         (hovered || pressed) && !isDisabled && v.hover,
-        isDisabled && (variant === 'primary' ? styles.disabledPrimary : styles.disabled),
+        isDisabled && (variant === 'primary' ? (tone === 'pink' ? styles.disabledPrimaryPink : tone === 'green' ? styles.disabledPrimaryGreen : styles.disabledPrimary) : styles.disabled),
         variant === 'primary' && !isDisabled && !wide && shadow.button,
         style,
       ]}
@@ -71,7 +72,7 @@ export function ButtonRow({ children, style }: { children: React.ReactNode; styl
 
 const VARIANTS: Record<Variant, { box: any; hover: any; text: string }> = {
   primary: { box: { backgroundColor: colors.primary }, hover: { backgroundColor: colors.primaryHover }, text: '#FFFFFF' },
-  secondary: { box: { backgroundColor: colors.primarySoft }, hover: { backgroundColor: '#DCE8FF' }, text: colors.primary },
+  secondary: { box: { backgroundColor: colors.primarySoft }, hover: { backgroundColor: colors.primaryLine }, text: colors.primary },
   outline: { box: { backgroundColor: colors.surface, borderWidth: 1.5, borderColor: colors.primary }, hover: { backgroundColor: colors.primarySoft }, text: colors.primary },
   ghost: { box: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }, hover: { borderColor: colors.primaryLine }, text: colors.text },
   text: { box: { backgroundColor: 'transparent' }, hover: { backgroundColor: colors.primarySoft }, text: colors.primary },
@@ -79,10 +80,27 @@ const VARIANTS: Record<Variant, { box: any; hover: any; text: string }> = {
   dangerOutline: { box: { backgroundColor: colors.surface, borderWidth: 1, borderColor: '#F3C9C9' }, hover: { backgroundColor: colors.dangerSoft }, text: colors.dangerStrong },
 };
 
+const TONE_VARIANTS: Record<ColorTone, Partial<Record<Variant, { box: any; hover: any; text: string }>>> = {
+  pink: {
+    primary: { box: { backgroundColor: colors.primary }, hover: { backgroundColor: colors.primaryHover }, text: '#FFFFFF' },
+    secondary: { box: { backgroundColor: colors.primarySoft }, hover: { backgroundColor: colors.primaryLine }, text: colors.primaryText },
+    outline: { box: { backgroundColor: colors.surface, borderWidth: 1.5, borderColor: colors.primary }, hover: { backgroundColor: colors.primarySoft }, text: colors.primaryText },
+    text: { box: { backgroundColor: 'transparent' }, hover: { backgroundColor: colors.primarySoft }, text: colors.primaryText },
+  },
+  green: {
+    primary: { box: { backgroundColor: '#4B7857' }, hover: { backgroundColor: '#3D6749' }, text: '#FFFFFF' },
+    secondary: { box: { backgroundColor: '#E7F1E9' }, hover: { backgroundColor: '#DCEBDD' }, text: '#3D6749' },
+    outline: { box: { backgroundColor: '#FFFDF7', borderWidth: 1.5, borderColor: '#4B7857' }, hover: { backgroundColor: '#E7F1E9' }, text: '#3D6749' },
+    text: { box: { backgroundColor: 'transparent' }, hover: { backgroundColor: '#E7F1E9' }, text: '#3D6749' },
+  },
+};
+
 const styles = StyleSheet.create({
   base: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   text: { fontFamily: fonts.semibold },
-  disabledPrimary: { backgroundColor: '#B9CDEE' },
+  disabledPrimary: { backgroundColor: colors.primaryDisabled },
+  disabledPrimaryPink: { backgroundColor: colors.primaryDisabled },
+  disabledPrimaryGreen: { backgroundColor: '#A9C6AE' },
   disabled: { opacity: 0.6 },
   badge: { position: 'absolute', top: 9, right: 10, width: 9, height: 9, borderRadius: 5, backgroundColor: colors.dangerStrong, borderWidth: 1.5, borderColor: '#fff' },
 });

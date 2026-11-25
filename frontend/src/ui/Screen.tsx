@@ -103,7 +103,7 @@ export function Screen({ title, subtitle, back, onBack, variant = 'large', heade
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: bg }} edges={['top', 'left', 'right']}>
       {showBar ? (
-        <View style={styles.bar}>
+        <View style={[styles.bar, variant === 'large' && { minHeight: 44 }]}>
           {back || onBack ? (
             <Pressable onPress={handleBack} accessibilityRole="button" accessibilityLabel="Back" hitSlop={8} style={styles.barBtn}>
               <Ionicons name="arrow-back" size={24} color={colors.text} />
@@ -120,11 +120,11 @@ export function Screen({ title, subtitle, back, onBack, variant = 'large', heade
       ) : null}
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         {scroll ? (
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: padded ? gutter : 0, paddingTop: showBar ? 4 : padded ? gutter : 0, paddingBottom: tab ? 120 : 32, flexGrow: 1 }} refreshControl={refresh} keyboardShouldPersistTaps="handled">
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: padded ? gutter : 0, paddingTop: showBar ? (variant === 'large' ? 0 : 4) : padded ? gutter : 0, paddingBottom: tab ? 120 : 32, flexGrow: 1 }} refreshControl={refresh} keyboardShouldPersistTaps="handled">
             {content}
           </ScrollView>
         ) : (
-          <View style={{ flex: 1, padding: padded ? gutter : 0, paddingTop: showBar ? 4 : padded ? gutter : 0 }}>{content}</View>
+          <View style={{ flex: 1, padding: padded ? gutter : 0, paddingTop: showBar ? (variant === 'large' ? 0 : 4) : padded ? gutter : 0 }}>{content}</View>
         )}
         {footer ? <View style={[styles.footer, tab && { paddingBottom: 110 }]}>{footer}</View> : null}
       </KeyboardAvoidingView>

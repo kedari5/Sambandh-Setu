@@ -296,7 +296,7 @@ function RequestDetail({ r, sub, navigation, onAct, busy }: { r: RequestItem; su
 
 // ---------------- Active ----------------
 
-const STAGE_COLOR: Record<string, string> = { connect: colors.primary, understand: colors.primary, reflect: '#E08A1E', discuss: '#D9467A', agree: '#7C5CDB', family: '#0F9F6E', reflect_again: '#E08A1E', decision: colors.navy };
+const STAGE_COLOR: Record<string, string> = { connect: colors.primary, understand: colors.primary, reflect: colors.warning, discuss: colors.primaryHover, agree: colors.primary, family: colors.mint, reflect_again: colors.warning, decision: colors.navy };
 
 function ActiveTab({ header, navigation }: { header: React.ReactNode; navigation: any }) {
   const { wide } = useLayout();

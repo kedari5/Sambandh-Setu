@@ -1,11 +1,15 @@
-import React, { useRef } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, Image, PanResponder, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import type { ScrollViewInstance } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Svg, { Circle, Defs, Line, Path, RadialGradient, Stop } from 'react-native-svg';
 import { colors, fonts, radius, shadow, space } from '../../theme';
 import { useLayout } from '../../hooks/useLayout';
 import { Button, LogoMark, Logo, TextLink } from '../../ui';
 import { MarketingHeader } from '../../layout/AuthLayout';
+
+const NATIVE_DRIVER = Platform.OS !== 'web';
 
 const FEATURES = [
   { icon: 'heart-outline', title: 'Self-Reflection First', text: 'Understand your readiness, values and preferences.' },
@@ -29,41 +33,555 @@ export default function Landing({ navigation, route }: any) {
 }
 
 function Welcome({ navigation }: any) {
+  const { width, height } = useLayout();
+  const collageWidth = Math.min(350, width - 40);
+  const collageHeight = Math.min(320, Math.max(220, collageWidth * 0.91));
+  const titleFontSize = Math.min(36, Math.max(28, width * 0.0624));
+  const [page, setPage] = useState(0);
+  const [showPromptPreview, setShowPromptPreview] = useState(false);
+  const pager = useRef<ScrollViewInstance | null>(null);
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const promptProgress = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (!showPromptPreview) return;
+    promptProgress.setValue(0);
+    const animation = Animated.spring(promptProgress, { toValue: 1, useNativeDriver: NATIVE_DRIVER, speed: 18, bounciness: 4 });
+    animation.start();
+    return () => animation.stop();
+  }, [showPromptPreview, promptProgress]);
+  const pageMotion = (index: number) => ({
+    opacity: scrollX.interpolate({
+      inputRange: [(index - 1) * width, index * width, (index + 1) * width],
+      outputRange: [0.76, 1, 0.76],
+      extrapolate: 'clamp',
+    }),
+    transform: [
+      {
+        translateX: scrollX.interpolate({
+          inputRange: [(index - 1) * width, index * width, (index + 1) * width],
+          outputRange: [width * 0.06, 0, -width * 0.06],
+          extrapolate: 'clamp',
+        }),
+      },
+      {
+        scale: scrollX.interpolate({
+          inputRange: [(index - 1) * width, index * width, (index + 1) * width],
+          outputRange: [0.97, 1, 0.97],
+          extrapolate: 'clamp',
+        }),
+      },
+    ],
+  });
+  const goToPage = (nextPage: number) => {
+    setPage(nextPage);
+    pager.current?.scrollTo({ x: width * nextPage, animated: true });
+  };
+  const signup = () => navigation.navigate('SignUp');
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bgTint }}>
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 32 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <View style={styles.markCircle}><LogoMark size={30} /></View>
-            <View>
-              <Text style={styles.serifBrand}>Sambandh Setu</Text>
-              <Text style={styles.brandSub}>PEOPLE · CONVERSATIONS · POSSIBILITIES</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: page === 2 ? '#0D4338' : '#F8F5E9' }} edges={['top', 'left', 'right', 'bottom']}>
+      <ScrollView
+        ref={pager}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        style={{ flex: 1 }}
+        onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], { useNativeDriver: NATIVE_DRIVER })}
+        scrollEventThrottle={16}
+        onMomentumScrollEnd={(event) => setPage(Math.round(event.nativeEvent.contentOffset.x / width))}
+      >
+        <Animated.View style={[{ width, flex: 1 }, pageMotion(0)]}>
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.mobileScroll}>
+            <View style={styles.mobileContent}>
+              <WelcomeBrand />
+              <Text style={[styles.mobileTitle, { fontSize: titleFontSize, lineHeight: Math.round(titleFontSize * 1.22) }]} accessibilityRole="header">Meet with Trust,{'\n'}Move at Your Pace</Text>
+              <View style={[styles.mobileCollage, { height: collageHeight }]} accessible={false}>
+                <View style={[styles.mobilePhoto, styles.mobilePhotoMain]}>
+                  <Image source={require('../../../assets/illustrations/welcome-photo-main.png')} style={styles.mobilePhotoImage} resizeMode="cover" />
+                </View>
+                <View style={[styles.mobilePhoto, styles.mobilePhotoTop]}>
+                  <Image source={require('../../../assets/illustrations/welcome-photo-top.png')} style={styles.mobilePhotoImage} resizeMode="cover" />
+                </View>
+                <View style={[styles.mobilePhoto, styles.mobilePhotoLeft]}>
+                  <Image source={require('../../../assets/illustrations/welcome-photo-left.png')} style={styles.mobilePhotoOval} resizeMode="cover" />
+                </View>
+                <View style={[styles.mobilePhoto, styles.mobilePhotoRight]}>
+                  <Image source={require('../../../assets/illustrations/welcome-photo-right.png')} style={styles.mobilePhotoImage} resizeMode="cover" />
+                </View>
+                <View style={[styles.mobileBadge, styles.mobileBadgeFace]}>
+                  <Text style={styles.mobileBadgeText}>100% Face-Verified</Text>
+                  <Ionicons name="checkmark" size={10} color="#6C3D4A" />
+                </View>
+                <View style={[styles.mobileBadge, styles.mobileBadgeAnonymous]}>
+                  <Text style={styles.mobileBadgeText}>Anonymous-First</Text>
+                  <Ionicons name="lock-closed" size={9} color="#315546" />
+                </View>
+                <View style={[styles.mobileBadge, styles.mobileBadgePressure]}>
+                  <Text style={styles.mobileBadgeText}>Zero Pressure</Text>
+                </View>
+                <View style={[styles.mobileBadge, styles.mobileBadgePrivacy]}>
+                  <Text style={styles.mobileBadgeText}>DPDP Protected</Text>
+                </View>
+              </View>
+              <SwipeToStart onComplete={() => goToPage(1)} />
+              <View style={styles.mobileAuthLinks}>
+                <Text style={styles.mobileLogin}>Already have an account?</Text>
+                <TextLink title="Log in" color="#4B7857" size={14} onPress={() => navigation.navigate('Login')} />
+              </View>
             </View>
-          </View>
-          <View style={styles.lang}><Text style={styles.langText}>English</Text></View>
-        </View>
-        <Image source={require('../../../assets/illustrations/welcome-couple.jpg')} style={styles.hero} resizeMode="cover" accessibilityLabel="Two people walking together in a garden" />
-        <Text style={styles.welcomeTitle} accessibilityRole="header">Meaningful connections,{'\n'}<Text style={{ color: colors.primary }}>at your own pace.</Text></Text>
-        <Text style={styles.welcomeSub}>Discover people, understand each other, and take the next step when you're ready.</Text>
-        <View style={styles.trio}>
-          {[['people-outline', 'People with shared values'], ['chatbox-outline', 'Thoughtful conversations'], ['heart-circle-outline', 'A guided journey forward']].map(([icon, label], i) => (
-            <View key={label} style={[styles.trioItem, i > 0 && { borderLeftWidth: 1, borderLeftColor: colors.border }]}>
-              <View style={styles.trioIcon}><Ionicons name={icon as any} size={18} color={colors.primary} /></View>
-              <Text style={styles.trioText}>{label}</Text>
+          </ScrollView>
+        </Animated.View>
+
+        <Animated.View style={[{ width, flex: 1 }, pageMotion(1)]}>
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.mobileScroll}>
+            <View style={styles.mobileContent}>
+              <WelcomeBrand />
+              <View style={styles.journeyHeading}>
+                <Text style={styles.journeyTitle} accessibilityRole="header">The Journey · Steps 1–5</Text>
+                <Text style={styles.journeySubtitle}>How our intentional path works</Text>
+              </View>
+              <View style={styles.journeyCards}>
+                <View style={[styles.journeyCard, styles.journeyCardMint]}>
+                  <View style={styles.journeyCardHeader}>
+                    <Text style={styles.journeyCardTitle}>01 | Verify &amp;{'\n'}Declare Intent</Text>
+                    <View style={styles.journeyIconMint}><Ionicons name="shield-checkmark-outline" size={27} color="#477D68" /></View>
+                  </View>
+                  <Text style={styles.journeyCardText}>Facial verification and real marriage intent required.</Text>
+                </View>
+                <View style={[styles.journeyCard, styles.journeyCardCream]}>
+                  <View style={styles.journeyCardHeader}>
+                    <Text style={styles.journeyCardTitle}>02 | Anonymous-First Chat</Text>
+                    <View style={styles.journeyIconColumn}>
+                      <Ionicons name="person-circle-outline" size={30} color="#AAB4B0" />
+                      <Text style={styles.concealedBadge}>Concealed</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.journeyCardText}>Discuss core values before revealing names or photos.</Text>
+                </View>
+                <View style={[styles.journeyCard, styles.journeyCardPink]}>
+                  <View style={styles.journeyCardHeader}>
+                    <Text style={styles.journeyCardTitle}>03 | Two-Key{'\n'}Mutual Reveal</Text>
+                    <View style={styles.journeyIconPink}><Ionicons name="key-outline" size={27} color={colors.primaryText} /></View>
+                  </View>
+                  <Text style={styles.journeyCardText}>Both must turn their keys to reveal identities.</Text>
+                </View>
+              </View>
+              <View style={styles.journeyCards}>
+                <View style={[styles.journeyCard, styles.journeyCardMint, styles.journeyCardTall]}>
+                  <View style={styles.journeyCardHeader}>
+                    <Text style={styles.journeyCardTitle}>04 | Reflect with{'\n'}Setu Guide AI</Text>
+                    <View style={styles.journeyIconMint}><Ionicons name="leaf-outline" size={25} color="#477D68" /></View>
+                  </View>
+                  <Text style={styles.journeyCardText}>Shared life vision &amp; expectations partner reflection.</Text>
+                  <Pressable
+                    onPress={() => setShowPromptPreview((shown) => !shown)}
+                    accessibilityRole="button"
+                    accessibilityState={{ expanded: showPromptPreview }}
+                    style={styles.previewButton}
+                  >
+                    <Text style={styles.previewButtonText}>{showPromptPreview ? 'Hide Prompt' : 'Preview Prompts'}</Text>
+                  </Pressable>
+                  {showPromptPreview && (
+                    <Animated.Text style={[styles.promptPreview, {
+                      opacity: promptProgress,
+                      transform: [{ translateY: promptProgress.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) }],
+                    }]}>
+                      “What does a meaningful shared life look like to you?”
+                    </Animated.Text>
+                  )}
+                </View>
+                <View style={[styles.journeyCard, styles.journeyCardPink, styles.journeyCardFamily]}>
+                  <View style={styles.journeyCardHeader}>
+                    <Text style={styles.journeyCardTitle}>05 | Optional{'\n'}Family Choice</Text>
+                    <View style={styles.journeyIconPink}><Ionicons name="people-outline" size={27} color={colors.primaryText} /></View>
+                  </View>
+                  <Text style={styles.journeyCardText}>Bring family in on your own terms, only when you both agree.</Text>
+                </View>
+              </View>
+              <View style={styles.journeyActions}>
+                <Pressable onPress={signup} accessibilityRole="button" accessibilityLabel="Skip to create account" style={({ pressed }) => [styles.skipButton, pressed && styles.communityButtonPressed]}>
+                  <Text style={styles.skipButtonText}>Skip</Text>
+                </Pressable>
+                <Pressable onPress={() => goToPage(2)} accessibilityRole="button" accessibilityLabel="Continue to the compatibility dial" style={({ pressed }) => [styles.communityButton, pressed && styles.communityButtonPressed]}>
+                  <Text style={styles.communityButtonText}>Compatibility Dial</Text>
+                  <Ionicons name="arrow-forward" size={17} color="#FFFFFF" />
+                </Pressable>
+              </View>
             </View>
-          ))}
-        </View>
-        <Button title="Get Started" arrow size="lg" onPress={() => navigation.navigate('SignUp')} />
-        <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 14 }}>
-          <Text style={styles.muted}>Already have an account? </Text>
-          <TextLink title="Log in" onPress={() => navigation.navigate('Login')} />
-        </View>
-        <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6, marginTop: 12 }}>
-          <Ionicons name="lock-closed-outline" size={14} color={colors.muted} />
-          <Text style={styles.muted}>Your information stays under your control.</Text>
-        </View>
+          </ScrollView>
+        </Animated.View>
+
+        <Animated.View style={[{ width, flex: 1 }, pageMotion(2)]}>
+          <RotaryNatureScreen width={width} onContinue={() => goToPage(3)} onSkip={signup} />
+        </Animated.View>
+
+        <Animated.View style={[{ width, flex: 1 }, pageMotion(3)]}>
+          <TwoKeyVaultScreen width={width} height={height} onContinue={signup} onSkip={signup} />
+        </Animated.View>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function WelcomeBrand() {
+  return (
+    <View style={styles.mobileHeader}>
+      <View style={{ width: 44 }} />
+      <View style={{ alignItems: 'center' }}>
+        <Image source={require('../../../assets/brand-logo.png')} style={{ width: 34, height: 34, resizeMode: 'contain' }} accessibilityLabel="Sambandh Setu logo" />
+        <Text style={styles.mobileBrand}>Sambandh Setu</Text>
+      </View>
+      <View style={{ width: 44 }} />
+    </View>
+  );
+}
+
+function RotaryNatureScreen({ width, onContinue, onSkip }: { width: number; onContinue: () => void; onSkip: () => void }) {
+  const dialRotation = useRef(new Animated.Value(0)).current;
+  const turns = useRef(0);
+  const dialSize = Math.min(320, Math.max(230, width - 52));
+  const dialAngle = dialRotation.interpolate({ inputRange: [0, 360], outputRange: ['0deg', '360deg'] });
+  const rotateDial = () => {
+    turns.current += 1;
+    Animated.spring(dialRotation, {
+      toValue: turns.current * 45,
+      useNativeDriver: NATIVE_DRIVER,
+      speed: 10,
+      bounciness: 4,
+    }).start();
+  };
+  const outerTicks = Array.from({ length: 72 }, (_, index) => {
+    const angle = index * 5;
+    const major = index % 6 === 0;
+    return (
+      <Line
+        key={`outer-${index}`}
+        x1="160"
+        y1="13"
+        x2="160"
+        y2={major ? '25' : '19'}
+        stroke={major ? '#CDB77F' : '#829381'}
+        strokeWidth={major ? '1.6' : '0.8'}
+        opacity={major ? '0.95' : '0.65'}
+        transform={`rotate(${angle} 160 160)`}
+      />
+    );
+  });
+  const compassTicks = Array.from({ length: 72 }, (_, index) => {
+    const angle = index * 5;
+    const major = index % 6 === 0;
+    return (
+      <Line
+        key={`compass-${index}`}
+        x1="160"
+        y1="34"
+        x2="160"
+        y2={major ? '48' : '41'}
+        stroke={major ? '#9E8861' : '#B3A581'}
+        strokeWidth={major ? '1.2' : '0.65'}
+        opacity="0.9"
+        transform={`rotate(${angle} 160 160)`}
+      />
+    );
+  });
+
+  return (
+    <View style={styles.dialScreen}>
+      <Svg pointerEvents="none" style={StyleSheet.absoluteFill} width={width} height="100%" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice">
+        <Path d="M-70 460 C30 390 90 470 195 420 S340 380 460 470" fill="none" stroke="#7D9A84" strokeWidth="1" opacity="0.15" />
+        <Path d="M-60 510 C40 440 110 520 205 470 S350 430 450 520" fill="none" stroke="#7D9A84" strokeWidth="1" opacity="0.12" />
+        <Path d="M-40 560 C60 490 130 570 220 520 S360 490 440 570" fill="none" stroke="#7D9A84" strokeWidth="1" opacity="0.1" />
+        <Circle cx="195" cy="480" r="248" fill="none" stroke="#9BB09A" strokeWidth="0.8" opacity="0.12" />
+      </Svg>
+      <View style={styles.dialHeading}>
+        <Text style={styles.dialTitle} accessibilityRole="header">The Rotary Nature Dial</Text>
+        <Text style={styles.dialSubtitle}>Explore Alignment · Rotate Dial</Text>
+      </View>
+      <View style={styles.dialCanvas}>
+        <View style={styles.dialDiagramGroup}>
+          <View style={[styles.dialOuter, { width: dialSize, height: dialSize, borderRadius: dialSize / 2 }]}>
+            <Svg width={dialSize} height={dialSize} viewBox="0 0 320 320">
+              <Defs>
+                <RadialGradient id="dialCoreGradient" cx="48%" cy="35%" r="70%">
+                  <Stop offset="0%" stopColor="#5A9279" />
+                  <Stop offset="100%" stopColor="#0E5B4B" />
+                </RadialGradient>
+              </Defs>
+              <Circle cx="160" cy="160" r="156" fill="#123F35" stroke="#D0B97F" strokeWidth="2" />
+              <Circle cx="160" cy="160" r="148" fill="#164A3F" stroke="#647F6C" strokeWidth="1" />
+              <Circle cx="160" cy="160" r="137" fill="none" stroke="#C1AB76" strokeWidth="1.5" />
+              <Circle cx="160" cy="160" r="132" fill="#F4F0E4" stroke="#D5C59A" strokeWidth="2" />
+              <Circle cx="160" cy="160" r="118" fill="none" stroke="#C5B58D" strokeWidth="1" />
+              <Circle cx="160" cy="160" r="108" fill="none" stroke="#D7CBAE" strokeWidth="1" />
+              <Circle cx="160" cy="160" r="91" fill="#E8E1CF" stroke="#BDAA7D" strokeWidth="1.5" />
+              <Circle cx="160" cy="160" r="84" fill="#F8F4E9" stroke="#CBB98E" strokeWidth="1" />
+              <Circle cx="160" cy="160" r="70" fill="none" stroke="#D6C9A6" strokeWidth="1" />
+              <Circle cx="160" cy="160" r="63" fill="#E5E3D8" stroke="#BDAA7D" strokeWidth="2" />
+              <Circle cx="160" cy="160" r="57" fill="none" stroke="#F0EBDD" strokeWidth="2" />
+              <Circle cx="160" cy="160" r="52" fill="url(#dialCoreGradient)" stroke="#BDD7C9" strokeWidth="3" />
+              <Path d="M160 53 L151 83 L160 77 L169 83 Z" fill="#BDA66F" stroke="#8F7952" strokeWidth="1" />
+              <Path d="M160 267 L151 237 L160 243 L169 237 Z" fill="#BDA66F" stroke="#8F7952" strokeWidth="1" />
+              <Path d="M53 160 L83 151 L77 160 L83 169 Z" fill="#D1C194" opacity="0.85" />
+              <Path d="M267 160 L237 151 L243 160 L237 169 Z" fill="#D1C194" opacity="0.85" />
+              <Circle cx="146" cy="142" r="11" fill="#B9CEC4" opacity="0.66" />
+              <Circle cx="172" cy="145" r="10" fill="#B9CEC4" opacity="0.62" />
+              <Path d="M126 174 C126 159 135 151 146 151 C155 151 160 157 163 166 C166 158 173 154 181 155 C194 157 199 166 199 180 L199 188 L126 188 Z" fill="#B9CEC4" opacity="0.58" />
+            </Svg>
+            <Animated.View
+              pointerEvents="none"
+              style={[styles.dialTickLayer, { width: dialSize, height: dialSize, transform: [{ rotate: dialAngle }] }]}
+            >
+              <Svg width={dialSize} height={dialSize} viewBox="0 0 320 320">
+                {outerTicks}
+                {compassTicks}
+              </Svg>
+            </Animated.View>
+            <Pressable
+              onPress={rotateDial}
+              accessibilityRole="button"
+              accessibilityLabel="Rotate the compatibility dial"
+              style={[styles.dialRotateTarget, { borderRadius: dialSize / 2 }]}
+            />
+            <Text style={[styles.dialTag, styles.dialTagTopLeft]}>Deep Thinker</Text>
+            <Text style={[styles.dialTag, styles.dialTagTopRight]}>Family-First</Text>
+            <Text style={[styles.dialTag, styles.dialTagBottomLeft]}>Values Aligned</Text>
+            <Text style={[styles.dialTag, styles.dialTagBottomRight]}>Steady Rhythm</Text>
+          </View>
+          <View style={styles.dialScoreRow}>
+            <Text style={styles.dialScoreValue}>94%</Text>
+            <Text style={styles.dialScoreLabel}>Compatibility</Text>
+          </View>
+        </View>
+      </View>
+      <View style={styles.dialActions}>
+        <Pressable
+          onPress={onSkip}
+          accessibilityRole="button"
+          accessibilityLabel="Skip to create account"
+          style={({ pressed }) => [styles.dialSkipButton, pressed && styles.dialContinuePressed]}
+        >
+          <Text style={styles.dialSkipText}>Skip</Text>
+        </Pressable>
+        <Pressable
+          onPress={onContinue}
+          accessibilityRole="button"
+          accessibilityLabel="Continue to the Two-Key Vault"
+          style={({ pressed }) => [styles.dialContinueButton, pressed && styles.dialContinuePressed]}
+        >
+          <Text style={styles.dialContinueText}>Continue to Vault</Text>
+          <Ionicons name="arrow-forward" size={17} color="#315546" />
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+function TwoKeyVaultScreen({ width, height, onContinue, onSkip }: { width: number; height: number; onContinue: () => void; onSkip: () => void }) {
+  const [yourKeyTurned, setYourKeyTurned] = useState(true);
+  const artSize = Math.min(width - 32, Math.max(190, height * 0.5));
+  return (
+    <View style={styles.vaultScreen}>
+      <ScrollView style={styles.vaultScroll} contentContainerStyle={styles.vaultContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.vaultSafetyBadge}>
+          <Ionicons name="shield-checkmark" size={13} color="#A44D5D" />
+          <Text style={styles.vaultSafetyText}>Safety Vault</Text>
+        </View>
+        <View style={styles.vaultInstructionGroup}>
+          <Text style={styles.vaultInstruction}>Drag &amp; Turn Key to Reveal</Text>
+        </View>
+        <View style={[styles.vaultArtwork, { width: artSize, height: artSize }]}>
+          <Svg width={artSize} height={artSize} viewBox="0 0 300 300">
+            <Defs>
+              <RadialGradient id="vaultGlow" cx="48%" cy="42%" r="62%">
+                <Stop offset="0%" stopColor="#FAF7EC" stopOpacity="0.98" />
+                <Stop offset="75%" stopColor="#E6ECE4" stopOpacity="0.9" />
+                <Stop offset="100%" stopColor="#D6E3DA" stopOpacity="0.35" />
+              </RadialGradient>
+              <RadialGradient id="vaultHalo" cx="50%" cy="50%" r="50%">
+                <Stop offset="0%" stopColor="#F5E9BF" stopOpacity="0.55" />
+                <Stop offset="70%" stopColor="#A8D9C6" stopOpacity="0.18" />
+                <Stop offset="100%" stopColor="#F8F5E9" stopOpacity="0" />
+              </RadialGradient>
+            </Defs>
+            <Circle cx="150" cy="150" r="143" fill="url(#vaultHalo)" />
+            <Circle cx="150" cy="150" r="127" fill="url(#vaultGlow)" stroke="#B7C8BE" strokeWidth="2" />
+            <Circle cx="150" cy="150" r="116" fill="none" stroke="#C9D7CC" strokeWidth="2" />
+            <Path d="M49 150 A101 101 0 0 1 251 150" fill="none" stroke="#9CC8B5" strokeWidth="1.5" opacity="0.82" />
+            <Path d="M49 150 A101 101 0 0 0 251 150" fill="none" stroke="#E6CB8A" strokeWidth="1.2" opacity="0.9" />
+            <Circle cx="150" cy="150" r="88" fill="none" stroke="#9CC8B5" strokeWidth="1.5" opacity="0.8" />
+          </Svg>
+          <View style={[styles.vaultKeyPosition, { left: artSize * 0.18, top: artSize * 0.13, width: artSize * 0.5, height: artSize * 0.7 }]}>
+            <VaultKey side="partner" />
+          </View>
+          <View style={[styles.vaultKeyPosition, { left: artSize * 0.32, top: artSize * 0.13, width: artSize * 0.5, height: artSize * 0.7 }]}>
+            <VaultKey side="you" onTurn={() => setYourKeyTurned(true)} />
+          </View>
+        </View>
+        <Text style={styles.vaultTitle}>The Two-Key{'\n'}Mutual Reveal Vault</Text>
+        <Text style={styles.vaultSubtitle}>Turn Your Key · Mutual Consent Required</Text>
+        <Text style={styles.vaultSubtext}>Both keys must turn to reveal identities</Text>
+        <View style={styles.vaultStatusCard}>
+          <View style={styles.vaultAvatars}>
+            <View style={[styles.vaultAvatar, styles.vaultAvatarOne]}>
+              <Ionicons name="person" size={24} color="#AAB6AD" />
+            </View>
+            <View style={[styles.vaultAvatar, styles.vaultAvatarTwo]}>
+              <Ionicons name="person" size={24} color="#AAB6AD" />
+            </View>
+          </View>
+          <View style={styles.vaultStatusDetails}>
+            <Text style={styles.vaultNames}>Aanya &amp; Rohan</Text>
+            <View style={styles.vaultStatusRow}>
+              <Ionicons name="lock-closed" size={10} color="#517B62" />
+              <Text style={styles.vaultStatusText}>Your Key: {yourKeyTurned ? 'Turned' : 'Waiting'}</Text>
+              {yourKeyTurned && <Ionicons name="checkmark" size={12} color="#517B62" />}
+            </View>
+            <View style={styles.vaultStatusRow}>
+              <Ionicons name="lock-closed" size={10} color="#A48A5C" />
+              <Text style={styles.vaultStatusText}>Rohan’s Key: Turning...</Text>
+            </View>
+          </View>
+        </View>
+        <View style={styles.vaultActions}>
+          <Pressable
+            onPress={onSkip}
+            accessibilityRole="button"
+            accessibilityLabel="Skip to create account"
+            style={({ pressed }) => [styles.skipButton, styles.vaultSkipButton, pressed && styles.dialContinuePressed]}
+          >
+            <Text style={styles.skipButtonText}>Skip</Text>
+          </Pressable>
+          <Pressable
+            onPress={onContinue}
+            accessibilityRole="button"
+            accessibilityLabel="Continue to account setup"
+            accessibilityHint="Continue to the existing sign-up flow."
+            style={({ pressed }) => [styles.vaultContinueButton, pressed && styles.dialContinuePressed]}
+          >
+            <Text style={styles.vaultContinueText}>Continue</Text>
+            <Ionicons name="arrow-forward" size={17} color="#FFFFFF" />
+          </Pressable>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+function VaultKey({ side, onTurn }: { side: 'you' | 'partner'; onTurn?: () => void }) {
+  const initialAngle = side === 'you' ? -45 : 45;
+  const rotation = useRef(new Animated.Value(initialAngle)).current;
+  const angle = rotation.interpolate({ inputRange: [-180, 180], outputRange: ['-180deg', '180deg'] });
+
+  useEffect(() => {
+    if (side !== 'partner') return;
+    const motion = Animated.loop(Animated.sequence([
+      Animated.timing(rotation, { toValue: initialAngle + 3, duration: 850, useNativeDriver: NATIVE_DRIVER }),
+      Animated.timing(rotation, { toValue: initialAngle - 3, duration: 850, useNativeDriver: NATIVE_DRIVER }),
+    ]));
+    motion.start();
+    return () => motion.stop();
+  }, [initialAngle, rotation, side]);
+
+  const panResponder = useRef(PanResponder.create({
+    onStartShouldSetPanResponder: () => side === 'you',
+    onMoveShouldSetPanResponder: (_, gesture) => side === 'you' && (Math.abs(gesture.dx) > 4 || Math.abs(gesture.dy) > 4),
+    onPanResponderMove: (_, gesture) => {
+      if (side === 'you') rotation.setValue(Math.max(-120, Math.min(30, initialAngle + gesture.dx * 0.55)));
+    },
+    onPanResponderRelease: (_, gesture) => {
+      if (side !== 'you') return;
+      const target = Math.abs(gesture.dx) > 28 ? initialAngle + (gesture.dx > 0 ? 52 : -52) : initialAngle;
+      Animated.spring(rotation, { toValue: target, useNativeDriver: NATIVE_DRIVER, speed: 14, bounciness: 5 })
+        .start(({ finished }) => { if (finished && Math.abs(gesture.dx) > 28) onTurn?.(); });
+    },
+    onPanResponderTerminate: () => {
+      if (side === 'you') Animated.spring(rotation, { toValue: initialAngle, useNativeDriver: NATIVE_DRIVER }).start();
+    },
+  })).current;
+
+  const color = side === 'you' ? '#3C8B75' : colors.primary;
+  const highlight = side === 'you' ? '#A8D5C4' : '#F0B7B6';
+  return (
+    <Animated.View
+      {...(side === 'you' ? panResponder.panHandlers : {})}
+      accessibilityRole={side === 'you' ? 'button' : undefined}
+      accessibilityLabel={side === 'you' ? 'Drag to turn your key' : 'Rohan’s key'}
+      accessibilityHint={side === 'you' ? 'Drag the key to rotate it.' : undefined}
+      style={[
+        styles.vaultKey,
+        { transform: [{ rotate: angle }] },
+      ]}
+    >
+      <Svg width="100%" height="100%" viewBox="0 0 100 180" preserveAspectRatio="xMidYMid meet">
+        <Path d="M50 59 L50 162" fill="none" stroke={color} strokeWidth="11" strokeLinecap="round" />
+        <Path d="M50 121 L68 121 L68 132 L60 132 L60 142 L50 142" fill="none" stroke={color} strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" />
+        <Path d="M50 149 L39 149 L39 159 L50 159" fill="none" stroke={color} strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
+        <Path d="M50 64 L50 113" fill="none" stroke={highlight} strokeWidth="2" strokeLinecap="round" opacity="0.9" />
+        <Circle cx="50" cy="40" r="19" fill="#EEF2E8" fillOpacity="0.25" stroke={color} strokeWidth="7" />
+        <Circle cx="50" cy="40" r="9" fill="none" stroke={highlight} strokeWidth="3" />
+        <Circle cx="28" cy="40" r="9" fill="#EEF2E8" fillOpacity="0.15" stroke={color} strokeWidth="5" />
+        <Circle cx="72" cy="40" r="9" fill="#EEF2E8" fillOpacity="0.15" stroke={color} strokeWidth="5" />
+        <Circle cx="50" cy="18" r="9" fill="#EEF2E8" fillOpacity="0.15" stroke={color} strokeWidth="5" />
+      </Svg>
+    </Animated.View>
+  );
+}
+
+function SwipeToStart({ onComplete }: { onComplete: () => void }) {
+  const trackWidth = useRef(0);
+  const translateX = useRef(new Animated.Value(0)).current;
+  const swipeProgress = useRef(new Animated.Value(0)).current;
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
+  const maxDrag = () => Math.max(0, trackWidth.current - 42 - 8);
+  const knobColor = swipeProgress.interpolate({ inputRange: [0, 1], outputRange: ['#28775C', colors.primary] });
+  const fillWidth = Animated.add(translateX, 50);
+  const fillColor = swipeProgress.interpolate({ inputRange: [0, 1], outputRange: ['#28775C', colors.primary] });
+  const fillOpacity = swipeProgress.interpolate({ inputRange: [0, 0.01], outputRange: [0, 1], extrapolate: 'clamp' });
+  const returnToStart = () => {
+    Animated.spring(translateX, { toValue: 0, useNativeDriver: false, speed: 24, bounciness: 5 }).start();
+    Animated.timing(swipeProgress, { toValue: 0, duration: 180, useNativeDriver: false }).start();
+  };
+  const panResponder = useRef(PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 2 && Math.abs(gesture.dx) > Math.abs(gesture.dy),
+    onPanResponderMove: (_, gesture) => {
+      const limit = maxDrag();
+      const distance = Math.max(0, Math.min(gesture.dx, limit));
+      translateX.setValue(distance);
+      swipeProgress.setValue(limit > 0 ? distance / limit : 0);
+    },
+    onPanResponderRelease: (_, gesture) => {
+      const limit = maxDrag();
+      if (limit > 0 && gesture.dx >= limit * 0.8) {
+        Animated.parallel([
+          Animated.timing(translateX, { toValue: limit, duration: 140, useNativeDriver: false }),
+          Animated.timing(swipeProgress, { toValue: 1, duration: 140, useNativeDriver: false }),
+        ])
+          .start(({ finished }) => { if (finished) onCompleteRef.current(); });
+      } else {
+        returnToStart();
+      }
+    },
+    onPanResponderTerminate: returnToStart,
+    onPanResponderTerminationRequest: () => false,
+  })).current;
+
+  return (
+    <Pressable
+      onPress={onComplete}
+      accessibilityRole="button"
+      accessibilityLabel="Slide to explore Setu"
+      accessibilityHint="Swipe the handle to the right. It turns pink as you slide, or tap to get started."
+      onLayout={(event) => { trackWidth.current = event.nativeEvent.layout.width; }}
+      style={styles.slideButton}
+    >
+      <Animated.View pointerEvents="none" style={[styles.slideTrackFill, { width: fillWidth, backgroundColor: fillColor, opacity: fillOpacity }]} />
+      <Text pointerEvents="none" style={styles.slideText}>Slide to Explore Setu</Text>
+      <Ionicons pointerEvents="none" name="pulse" size={18} color="#A5D3BD" style={styles.slidePulse} />
+      <Animated.View {...panResponder.panHandlers} style={[styles.slideKnob, { backgroundColor: knobColor, transform: [{ translateX }] }]}>
+        <Ionicons name="chevron-forward" size={18} color="#FFFFFF" />
+      </Animated.View>
+    </Pressable>
   );
 }
 
@@ -242,6 +760,107 @@ function WebLanding({ navigation, section }: any) {
 }
 
 const styles = StyleSheet.create({
+  mobileScroll: { flexGrow: 1, paddingHorizontal: 20, paddingVertical: 12 },
+  mobileContent: { flexGrow: 1, width: '100%' as any, maxWidth: 390, alignSelf: 'center', justifyContent: 'center' },
+  mobileHeader: { height: 64, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  mobileBrand: { fontFamily: fonts.display, fontSize: 11, color: '#194B3B', marginTop: 2 },
+  mobileTitle: { width: '112%' as any, maxWidth: 390, alignSelf: 'center', fontFamily: fonts.display, fontSize: 28, lineHeight: 34, color: '#173F32', textAlign: 'center', marginTop: 6, marginBottom: 32 },
+  mobileCollage: { width: '100%' as any, maxWidth: 350, alignSelf: 'center', position: 'relative', marginTop: 2 },
+  journeyHeading: { alignItems: 'center', marginBottom: 14, marginTop: 8 },
+  journeyTitle: { fontFamily: fonts.display, fontSize: 17, lineHeight: 23, color: '#253C32', textAlign: 'center' },
+  journeySubtitle: { fontFamily: fonts.regular, fontSize: 10, lineHeight: 15, color: '#52635B', textAlign: 'center', marginTop: 2 },
+  journeyCards: { gap: 7, paddingHorizontal: 2 },
+  journeyCard: { borderWidth: 1, borderColor: 'rgba(40, 76, 62, 0.13)', borderRadius: 14, padding: 12, shadowColor: '#28392F', shadowOpacity: 0.15, shadowRadius: 7, shadowOffset: { width: 0, height: 3 }, elevation: 3 },
+  journeyCardMint: { backgroundColor: '#DCEDE3', transform: [{ rotate: '-1.8deg' }, { translateX: -1 }] },
+  journeyCardCream: { backgroundColor: '#FBF8F0', transform: [{ rotate: '1.2deg' }, { translateX: 1 }] },
+  journeyCardPink: { backgroundColor: '#F6E0E5', transform: [{ rotate: '-1.4deg' }, { translateX: -1 }] },
+  journeyCardTall: { paddingVertical: 13 },
+  journeyCardFamily: { paddingVertical: 14, transform: [{ rotate: '1.5deg' }, { translateX: 1 }] },
+  journeyCardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  journeyCardTitle: { flex: 1, fontFamily: fonts.semibold, fontSize: 12, lineHeight: 16, color: '#26392F' },
+  journeyCardText: { fontFamily: fonts.regular, fontSize: 10, lineHeight: 14, color: '#394A41', marginTop: 5 },
+  journeyIconMint: { width: 38, height: 38, borderRadius: 13, backgroundColor: 'rgba(255,255,255,0.5)', alignItems: 'center', justifyContent: 'center' },
+  journeyIconPink: { width: 38, height: 38, borderRadius: 13, backgroundColor: 'rgba(255,255,255,0.48)', alignItems: 'center', justifyContent: 'center' },
+  journeyIconColumn: { alignItems: 'center', justifyContent: 'center', minWidth: 48, gap: 1 },
+  concealedBadge: { fontFamily: fonts.medium, fontSize: 7, color: '#FFFFFF', backgroundColor: '#335C4C', borderRadius: 5, paddingHorizontal: 5, paddingVertical: 2 },
+  previewButton: { height: 25, borderWidth: 1, borderColor: '#B7CBBE', borderRadius: 15, alignItems: 'center', justifyContent: 'center', marginTop: 9, backgroundColor: 'rgba(255,255,255,0.25)' },
+  previewButtonText: { fontFamily: fonts.medium, fontSize: 9, color: '#425C4D' },
+  promptPreview: { fontFamily: fonts.regular, fontSize: 10, lineHeight: 14, fontStyle: 'italic', color: '#3E584B', marginTop: 9 },
+  journeyActions: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 14 },
+  communityButton: { flex: 1, height: 42, borderRadius: 22, backgroundColor: '#0E5944', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, ...shadow.card },
+  communityButtonPressed: { opacity: 0.9, transform: [{ scale: 0.98 }] },
+  communityButtonText: { fontFamily: fonts.semibold, fontSize: 11, color: '#FFFFFF' },
+  skipButton: { width: 76, height: 42, borderRadius: 22, borderWidth: 1.5, borderColor: '#0E5944', backgroundColor: '#F8F5E9', alignItems: 'center', justifyContent: 'center' },
+  skipButtonText: { fontFamily: fonts.semibold, fontSize: 11, color: '#0E5944' },
+  dialScreen: { flex: 1, backgroundColor: '#0D4338', alignItems: 'center', paddingHorizontal: 18, paddingTop: 18, paddingBottom: 42, overflow: 'hidden' },
+  dialHeading: { alignItems: 'center', marginTop: 4 },
+  dialTitle: { fontFamily: fonts.display, fontSize: 20, lineHeight: 27, color: '#F6F1E5', textAlign: 'center' },
+  dialSubtitle: { fontFamily: fonts.regular, fontSize: 10, lineHeight: 15, color: '#D5DED3', textAlign: 'center', marginTop: 1 },
+  dialCanvas: { flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center' },
+  dialDiagramGroup: { alignItems: 'center' },
+  dialScoreRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center', gap: 6, marginTop: 8 },
+  dialScoreValue: { fontFamily: fonts.display, fontSize: 18, lineHeight: 22, color: '#F6F1E5' },
+  dialScoreLabel: { fontFamily: fonts.medium, fontSize: 12, color: '#D5DED3' },
+  dialOuter: { position: 'relative', alignItems: 'center', justifyContent: 'center', backgroundColor: '#174D41', borderWidth: 3, borderColor: '#C4B07D', shadowColor: '#031E19', shadowOpacity: 0.45, shadowRadius: 12, shadowOffset: { width: 0, height: 5 }, elevation: 8, overflow: 'visible' },
+  dialTickLayer: { position: 'absolute', top: 0, left: 0 },
+  dialRotateTarget: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+  dialTag: { position: 'absolute', overflow: 'hidden', borderRadius: 12, backgroundColor: '#B65F70', paddingHorizontal: 8, paddingVertical: 4, color: '#FFF8F0', fontFamily: fonts.medium, fontSize: 8, lineHeight: 10, zIndex: 5 },
+  dialTagTopLeft: { top: '18%' as any, left: '-3%' as any, transform: [{ rotate: '-27deg' }] },
+  dialTagTopRight: { top: '18%' as any, right: '-3%' as any, transform: [{ rotate: '27deg' }] },
+  dialTagBottomLeft: { bottom: '17%' as any, left: '-5%' as any, transform: [{ rotate: '20deg' }] },
+  dialTagBottomRight: { bottom: '17%' as any, right: '-5%' as any, transform: [{ rotate: '-20deg' }] },
+  dialActions: { width: '100%' as any, maxWidth: 300, flexDirection: 'row', alignItems: 'center', gap: 10, alignSelf: 'center' },
+  dialSkipButton: { width: 76, height: 48, borderRadius: 24, borderWidth: 1.5, borderColor: '#C4B07D', backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center' },
+  dialSkipText: { fontFamily: fonts.semibold, fontSize: 12, color: '#F6F1E5' },
+  dialContinueButton: { flex: 1, height: 48, borderRadius: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, backgroundColor: '#F7F2E5', borderWidth: 1.5, borderColor: '#C4B07D', shadowColor: '#031E19', shadowOpacity: 0.3, shadowRadius: 7, shadowOffset: { width: 0, height: 3 }, elevation: 5 },
+  dialContinueText: { fontFamily: fonts.semibold, fontSize: 13, color: '#174D41' },
+  dialContinuePressed: { opacity: 0.88, transform: [{ scale: 0.94 }] },
+  vaultScreen: { flex: 1, width: '100%' as any, backgroundColor: '#F8F5E9' },
+  vaultScroll: { flex: 1, width: '100%' as any },
+  vaultContent: { flexGrow: 1, width: '100%' as any, alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingTop: 4, paddingBottom: 36 },
+  vaultSafetyBadge: { alignSelf: 'flex-end', flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 14, backgroundColor: '#FFFDF7', borderWidth: 1, borderColor: '#E8DDD0' },
+  vaultSafetyText: { fontFamily: fonts.medium, fontSize: 10, color: '#765F50' },
+  vaultInstructionGroup: { width: '100%' as any, alignItems: 'center', marginTop: 5 },
+  vaultInstruction: { width: '100%' as any, fontFamily: fonts.medium, fontSize: 12, lineHeight: 16, color: '#4E5A51', textAlign: 'center' },
+  vaultArtwork: { position: 'relative', alignSelf: 'center', alignItems: 'center', justifyContent: 'center', marginTop: -7, overflow: 'visible' },
+  vaultKeyPosition: { position: 'absolute', justifyContent: 'center', alignItems: 'center', zIndex: 2 },
+  vaultKey: { width: '100%' as any, height: '100%' as any },
+  vaultTitle: { width: '100%' as any, fontFamily: fonts.display, fontSize: 22, lineHeight: 25, color: '#222B27', textAlign: 'center', marginTop: -3 },
+  vaultSubtitle: { width: '100%' as any, fontFamily: fonts.medium, fontSize: 11, lineHeight: 15, color: '#2E3933', textAlign: 'center', marginTop: 3 },
+  vaultSubtext: { width: '100%' as any, fontFamily: fonts.regular, fontSize: 10, lineHeight: 13, color: '#545F56', textAlign: 'center', marginTop: 2 },
+  vaultStatusCard: { width: '100%' as any, maxWidth: 360, minHeight: 62, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 11, paddingVertical: 8, marginTop: 10, borderRadius: 13, backgroundColor: '#FFFDF8', borderWidth: 1, borderColor: '#E7E1D5', shadowColor: '#314138', shadowOpacity: 0.12, shadowRadius: 7, shadowOffset: { width: 0, height: 3 }, elevation: 3 },
+  vaultAvatars: { width: 52, height: 42, position: 'relative' },
+  vaultAvatar: { position: 'absolute', top: 0, width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E5E5DC', borderWidth: 1, borderColor: '#F8F5E9' },
+  vaultAvatarOne: { left: 0 },
+  vaultAvatarTwo: { left: 14, backgroundColor: '#D9E1D9' },
+  vaultStatusDetails: { flex: 1, gap: 1 },
+  vaultNames: { fontFamily: fonts.semibold, fontSize: 11, lineHeight: 15, color: '#2D3831' },
+  vaultStatusRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  vaultStatusText: { fontFamily: fonts.regular, fontSize: 9, lineHeight: 12, color: '#435047' },
+  vaultActions: { width: '100%' as any, maxWidth: 330, flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 10 },
+  vaultSkipButton: { height: 48 },
+  vaultContinueButton: { flex: 1, height: 48, borderRadius: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, backgroundColor: '#0E5944', borderWidth: 1.5, borderColor: '#C4B07D', shadowColor: '#314138', shadowOpacity: 0.2, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 4 },
+  vaultContinueText: { fontFamily: fonts.semibold, fontSize: 13, color: '#FFFFFF' },
+  mobilePhoto: { position: 'absolute', padding: 3, backgroundColor: '#FFFEF8', shadowColor: '#2E3A31', shadowOpacity: 0.18, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
+  mobilePhotoMain: { width: '52%' as any, height: '48%' as any, left: '3%' as any, top: '9%' as any, borderRadius: 13, zIndex: 2, transform: [{ rotate: '-8deg' }] },
+  mobilePhotoTop: { width: '40%' as any, height: '37%' as any, right: '2%' as any, top: '2%' as any, borderRadius: 13, zIndex: 1, transform: [{ rotate: '7deg' }] },
+  mobilePhotoLeft: { width: '36%' as any, height: '42%' as any, left: '5%' as any, bottom: '3%' as any, borderRadius: 999, zIndex: 4, transform: [{ rotate: '-7deg' }] },
+  mobilePhotoRight: { width: '49%' as any, height: '48%' as any, right: '3%' as any, bottom: '6%' as any, borderRadius: 17, zIndex: 3, transform: [{ rotate: '6deg' }] },
+  mobilePhotoImage: { width: '100%' as any, height: '100%' as any, borderRadius: 10 },
+  mobilePhotoOval: { width: '100%' as any, height: '100%' as any, borderRadius: 999 },
+  mobileBadge: { position: 'absolute', zIndex: 5, flexDirection: 'row', alignItems: 'center', gap: 2, borderWidth: 1, borderColor: 'rgba(36, 76, 62, 0.12)', paddingHorizontal: 7, paddingVertical: 4, borderRadius: 6 },
+  mobileBadgeText: { fontFamily: fonts.medium, fontSize: 8, color: '#28483C' },
+  mobileBadgeFace: { left: 0, top: '3%' as any, backgroundColor: '#F3D5DC', transform: [{ rotate: '-6deg' }] },
+  mobileBadgeAnonymous: { right: 0, top: '28%' as any, backgroundColor: '#D8E9DB', transform: [{ rotate: '5deg' }] },
+  mobileBadgePressure: { left: '3%' as any, bottom: '16%' as any, backgroundColor: '#F3D5DC', transform: [{ rotate: '-5deg' }] },
+  mobileBadgePrivacy: { right: '2%' as any, bottom: '5%' as any, backgroundColor: '#D8E9DB', transform: [{ rotate: '5deg' }] },
+  slideButton: { height: 48, maxWidth: 350, width: '100%' as any, alignSelf: 'center', justifyContent: 'center', borderRadius: 26, backgroundColor: '#0E5944', borderWidth: 1, borderColor: '#80A995', marginTop: 2, overflow: 'hidden', ...shadow.card },
+  slideTrackFill: { position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 26 },
+  slideKnob: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#28775C', borderWidth: 1, borderColor: '#8AB59D', alignItems: 'center', justifyContent: 'center', position: 'absolute', left: 3, top: 2 },
+  slideText: { position: 'absolute', left: 0, right: 0, textAlign: 'center', paddingLeft: 34, paddingRight: 30, fontFamily: fonts.semibold, fontSize: 11, color: '#FFFFFF' },
+  slidePulse: { position: 'absolute', right: 10 },
+  mobileLogin: { fontFamily: fonts.regular, fontSize: 12, color: '#273D34' },
+  mobileAuthLinks: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 6 },
   markCircle: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' },
   serifBrand: { fontFamily: fonts.display, fontSize: 19, color: colors.navy },
   brandSub: { fontFamily: fonts.medium, fontSize: 8.5, letterSpacing: 1, color: colors.muted },
@@ -283,7 +902,7 @@ const styles = StyleSheet.create({
   pathIcon: { width: 60, height: 60, borderRadius: 14, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', marginVertical: 16, backgroundColor: '#fff' },
   pathText: { fontFamily: fonts.regular, fontSize: 13.5, lineHeight: 20, color: colors.muted, textAlign: 'center' },
   mock: { width: 560, height: 360, backgroundColor: '#fff', borderRadius: 16, borderWidth: 8, borderColor: '#1E293B', overflow: 'hidden', ...shadow.modal },
-  mockBar: { flexDirection: 'row', gap: 6, padding: 10, backgroundColor: '#F1F5F9' },
+  mockBar: { flexDirection: 'row', gap: 6, padding: 10, backgroundColor: colors.bgTint },
   mockDot: { width: 9, height: 9, borderRadius: 5 },
   mockSide: { width: 170, borderRightWidth: 1, borderRightColor: colors.border, padding: 14, gap: 10 },
   mockNav: { fontFamily: fonts.medium, fontSize: 12, color: colors.textSoft, paddingVertical: 4, paddingHorizontal: 8, borderRadius: 6 },

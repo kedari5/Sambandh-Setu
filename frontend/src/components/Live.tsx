@@ -19,8 +19,8 @@ export function LiveBanner() {
         </View>
       ) : null}
       {announcement ? (
-        <View style={[styles.bar, announcement.tone === 'success' ? { backgroundColor: colors.successSoft, borderBottomColor: '#BFEBD9' } : announcement.tone === 'warning' ? { backgroundColor: colors.warningSoft, borderBottomColor: '#F1DDBB' } : { backgroundColor: colors.primarySoft, borderBottomColor: colors.primaryLine }]}>
-          <Ionicons name={announcement.tone === 'warning' ? 'alert-circle-outline' : announcement.tone === 'success' ? 'checkmark-circle-outline' : 'megaphone-outline'} size={16} color={announcement.tone === 'warning' ? '#A8752A' : announcement.tone === 'success' ? '#0F9F6E' : colors.primary} />
+        <View style={[styles.bar, announcement.tone === 'success' ? { backgroundColor: colors.successSoft, borderBottomColor: '#D3E5D6' } : announcement.tone === 'warning' ? { backgroundColor: colors.warningSoft, borderBottomColor: '#F1DDBB' } : { backgroundColor: colors.primarySoft, borderBottomColor: colors.primaryLine }]}>
+          <Ionicons name={announcement.tone === 'warning' ? 'alert-circle-outline' : announcement.tone === 'success' ? 'checkmark-circle-outline' : 'megaphone-outline'} size={16} color={announcement.tone === 'warning' ? '#A8752A' : announcement.tone === 'success' ? colors.navy : colors.primary} />
           <Text style={styles.text}>{announcement.text}</Text>
         </View>
       ) : null}

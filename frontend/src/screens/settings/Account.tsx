@@ -7,6 +7,8 @@ import { Avatar, Button, ButtonRow, Card, CheckItem, IconTile, ConfirmDialog, Da
 import { SettingsPage } from './SettingsHome';
 import { CITIES, GENDERS, HEIGHT_OPTIONS, MARITAL } from '../../content/forms';
 import { formatDate, maskPhone } from '../../utils/format';
+import { useLayout } from '../../hooks/useLayout';
+import { ProfileSection } from '../../components/ProfileSection';
 
 export function Account({ navigation }: any) {
   const { user } = useAuth();
@@ -29,6 +31,7 @@ export function Account({ navigation }: any) {
 
 export function EditPersonal({ navigation }: any) {
   const { user, setUser } = useAuth();
+  const { wide } = useLayout();
   const toast = useToast();
   const p = user!.profile;
   const [f, setF] = useState({ fullName: user!.name, dateOfBirth: p.dateOfBirth || '', gender: p.gender, maritalStatus: p.maritalStatus, heightCm: p.heightCm ? String(p.heightCm) : '', location: p.location });
@@ -36,24 +39,51 @@ export function EditPersonal({ navigation }: any) {
   const [busy, setBusy] = useState(false);
   const set = (k: string, v: string) => { setF((s) => ({ ...s, [k]: v })); setErrors((e) => ({ ...e, [k]: '' })); };
   const save = async () => {
+    const heightCm = f.heightCm ? Number(f.heightCm) : undefined;
+    if (heightCm !== undefined && (!Number.isInteger(heightCm) || heightCm < 120 || heightCm > 230)) {
+      setErrors({ heightCm: 'Height must be between 120 and 230 cm.' });
+      return;
+    }
     setBusy(true);
     try {
-      const r = await MeApi.updateAccount({ fullName: f.fullName, dateOfBirth: f.dateOfBirth || undefined, gender: f.gender || undefined, maritalStatus: f.maritalStatus || undefined, heightCm: f.heightCm ? Number(f.heightCm) : undefined, location: f.location });
+      const r = await MeApi.updateAccount({ fullName: f.fullName, dateOfBirth: f.dateOfBirth || undefined, gender: f.gender || undefined, maritalStatus: f.maritalStatus || undefined, heightCm, location: f.location });
       setUser(r.user); toast.show('Personal information saved'); navigation.goBack();
     } catch (e: any) { if (e?.field) setErrors({ [e.field]: e.message }); else toast.show(errorMessage(e), 'error'); } finally { setBusy(false); }
   };
   return (
     <SettingsPage active="account" title="Edit Personal Information" subtitle="Keep your profile information up to date." breadcrumb={['Home', 'Settings', 'Account', 'Edit Personal Information']}
       footer={<ButtonRow><Button title="Cancel" variant="ghost" onPress={() => navigation.goBack()} /><Button title="Save changes" onPress={save} loading={busy} /></ButtonRow>}>
-      <TextField label="Full name" required value={f.fullName} onChangeText={(v) => set('fullName', v)} error={errors.fullName} />
-      <DateField label="Date of birth" required value={f.dateOfBirth} onChange={(v) => set('dateOfBirth', v)} error={errors.dateOfBirth} />
-      <Text style={styles.label}>Gender <Text style={{ color: colors.dangerStrong }}>*</Text></Text>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginBottom: space.lg }}>
-        {GENDERS.map((g) => <View key={g} style={{ minWidth: 150 }}><RadioRow label={g} boxed={false} selected={f.gender === g} onPress={() => set('gender', g)} /></View>)}
-      </View>
-      <SelectField label="Marital status" required value={f.maritalStatus} options={MARITAL} onChange={(v) => set('maritalStatus', v)} error={errors.maritalStatus} />
-      <SelectField label="Height" value={f.heightCm} options={HEIGHT_OPTIONS} onChange={(v) => set('heightCm', v)} error={errors.heightCm} />
-      <SelectField label="Location" required value={f.location} options={CITIES} onChange={(v) => set('location', v)} />
+      <ProfileSection icon="person-outline" title="Personal details" subtitle="The details that help people recognise and understand you.">
+        <View style={wide ? styles.fieldRow : undefined}>
+          <View style={wide ? styles.fieldColumn : undefined}>
+            <TextField label="Full name" required value={f.fullName} onChangeText={(v) => set('fullName', v)} error={errors.fullName} />
+          </View>
+          <View style={wide ? styles.fieldColumn : undefined}>
+            <DateField label="Date of birth" required value={f.dateOfBirth} onChange={(v) => set('dateOfBirth', v)} error={errors.dateOfBirth} />
+          </View>
+        </View>
+      </ProfileSection>
+      <ProfileSection icon="heart-outline" title="About your profile" subtitle="Choose the details you want to share on your profile.">
+        <Text style={styles.label}>Gender <Text style={{ color: colors.dangerStrong }}>*</Text></Text>
+        <View style={styles.genderGrid}>
+          {GENDERS.map((g) => (
+            <View key={g} style={wide ? styles.genderOptionWide : styles.genderOption}>
+              <RadioRow label={g} selected={f.gender === g} onPress={() => set('gender', g)} />
+            </View>
+          ))}
+        </View>
+        <SelectField label="Marital status" required value={f.maritalStatus} options={MARITAL} onChange={(v) => set('maritalStatus', v)} error={errors.maritalStatus} />
+      </ProfileSection>
+      <ProfileSection icon="location-outline" title="More about you" subtitle="These details help make your profile more complete.">
+        <View style={wide ? styles.fieldRow : undefined}>
+          <View style={wide ? styles.fieldColumn : undefined}>
+            <SelectField label="Height" value={f.heightCm} options={HEIGHT_OPTIONS} onChange={(v) => set('heightCm', v)} error={errors.heightCm} allowCustom customLabel="Enter height manually" customPlaceholder="Height in centimeters" customKeyboardType="number-pad" customMaxLength={3} customValueSuffix=" cm" />
+          </View>
+          <View style={wide ? styles.fieldColumn : undefined}>
+            <SelectField label="Location" required value={f.location} options={CITIES} onChange={(v) => set('location', v)} allowCustom customLabel="Enter location manually" customPlaceholder="City and state" customMaxLength={80} />
+          </View>
+        </View>
+      </ProfileSection>
     </SettingsPage>
   );
 }
@@ -145,7 +175,7 @@ export function LocationSettings({ navigation }: any) {
   const save = async () => { try { const r = await MeApi.updateAccount({ location: loc }); setUser(r.user); toast.show('Location saved'); navigation.goBack(); } catch (e) { toast.show(errorMessage(e), 'error'); } };
   return (
     <SettingsPage active="account" title="Location" subtitle="Your city helps us suggest people near you." footer={<Button title="Save" onPress={save} />}>
-      <SelectField label="City" value={loc} options={CITIES} onChange={setLoc} icon="location-outline" />
+      <SelectField label="City" value={loc} options={CITIES} onChange={setLoc} icon="location-outline" allowCustom customLabel="Enter location manually" customPlaceholder="City and state" customMaxLength={80} />
       <InfoNote icon="navigate-outline" text="We only use the city you choose here. We never use your device's location." />
     </SettingsPage>
   );
@@ -333,6 +363,11 @@ export function Logout({ navigation }: any) {
 
 const styles = StyleSheet.create({
   label: { fontFamily: fonts.semibold, fontSize: 13, color: colors.text, marginBottom: 4 },
+  fieldRow: { flexDirection: 'row', gap: space.md },
+  fieldColumn: { flex: 1 },
+  genderGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, marginBottom: space.md },
+  genderOption: { width: '100%' },
+  genderOptionWide: { width: '48%' },
   small: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.muted },
   big: { fontFamily: fonts.semibold, fontSize: 18, color: colors.text, marginTop: 4 },
   h: { fontFamily: fonts.semibold, fontSize: 15, color: colors.text, marginBottom: 10 },

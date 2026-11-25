@@ -26,7 +26,7 @@ export function ListRow({ icon, tint = 'blue', title, subtitle, value, onPress, 
   if (!onPress) return <View style={style}>{content}</View>;
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={[title, subtitle, value].filter(Boolean).join('. ')}
-      style={({ hovered, pressed }: any) => [...style, (hovered || pressed) && !selected && { backgroundColor: colors.bg }]}>
+      style={({ hovered, pressed }: any) => [...style, (hovered || pressed) && !selected && { backgroundColor: colors.primarySoft }]}>
       {content}
     </Pressable>
   );
@@ -82,7 +82,7 @@ export function KeyValue({ label, value, last, onPress }: { label: string; value
 
 /** Check list item ("Profile information", "Verified badge on your profile"). */
 export function CheckItem({ text, tone = 'green', icon }: { text: string; tone?: 'green' | 'blue' | 'red'; icon?: IconName }) {
-  const c = tone === 'green' ? colors.success : tone === 'red' ? colors.dangerStrong : colors.primary;
+  const c = tone === 'green' ? colors.navy : tone === 'red' ? colors.dangerStrong : colors.primary;
   return (
     <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
       <Ionicons name={icon || (tone === 'red' ? 'ellipse' : 'checkmark-circle')} size={tone === 'red' ? 8 : 19} color={c} style={{ marginTop: tone === 'red' ? 7 : 1 }} />

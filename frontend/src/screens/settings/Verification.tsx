@@ -94,7 +94,7 @@ export function VerificationFlow({ route, navigation }: any) {
         <Card>
           {[['Document uploaded', `${formatDate(existing.createdAt)}, ${formatTime(existing.createdAt)}`, 'done'], ['Under review', 'Our team is verifying your information.', 'current'], ['Verification complete', '', 'todo']].map(([title, sub, state], i) => (
             <View key={title} style={{ flexDirection: 'row', gap: 12, marginBottom: i < 2 ? 16 : 0 }}>
-              <Ionicons name={state === 'done' ? 'checkmark-circle' : state === 'current' ? 'radio-button-on' : 'ellipse-outline'} size={22} color={state === 'todo' ? colors.faint : state === 'done' ? colors.success : colors.primary} />
+              <Ionicons name={state === 'done' ? 'checkmark-circle' : state === 'current' ? 'radio-button-on' : 'ellipse-outline'} size={22} color={state === 'todo' ? colors.faint : state === 'done' ? colors.navy : colors.primary} />
               <View><Text style={styles.name}>{title}</Text>{sub ? <Text style={styles.small}>{sub}</Text> : null}</View>
             </View>
           ))}

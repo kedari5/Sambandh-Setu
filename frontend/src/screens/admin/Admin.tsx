@@ -847,7 +847,7 @@ const styles = StyleSheet.create({
   stepBtn: { width: 34, height: 34, borderRadius: 17, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' },
   stepValue: { width: 64, textAlign: 'center', fontFamily: fonts.semibold, fontSize: 14, color: colors.text },
   audit: { flexDirection: 'row', gap: 14, padding: 14 },
-  box: { width: 20, height: 20, borderRadius: 5, borderWidth: 1.5, borderColor: '#CBD5E1', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' },
+  box: { width: 20, height: 20, borderRadius: 5, borderWidth: 1.5, borderColor: colors.borderStrong, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' },
   boxOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   mRow: { flexDirection: 'row', alignItems: 'stretch' },
   mLabel: { flex: 1, minWidth: 250, paddingVertical: 10, paddingHorizontal: 16, justifyContent: 'center' },

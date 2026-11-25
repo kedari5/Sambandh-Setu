@@ -53,7 +53,7 @@ class Settings(BaseSettings):
     gemini_api_key: str | None = Field(default=None, repr=False)
     gemini_model: str = "gemini-2.5-flash"
     llm_api_key: str | None = Field(default=None, repr=False)
-    llm_provider: str = "gemini"
+    llm_provider: str = "placeholder"
     llm_timeout_seconds: float = Field(default=10.0, gt=0)
     use_mock: bool = True
 

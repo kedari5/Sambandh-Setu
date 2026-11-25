@@ -6,7 +6,7 @@ import { colors, fonts, radius } from '../theme';
 export type StageLite = { key: string; title: string; short?: string; status: 'completed' | 'current' | 'locked' };
 
 /** Horizontal stepper: checked circles, a ringed current stage, empty future stages. */
-export function JourneyStepper({ stages, compact, showDesc = true }: { stages: StageLite[]; compact?: boolean; showDesc?: boolean }) {
+export function JourneyStepper({ stages, compact, showDesc = true, activeColor = colors.mint }: { stages: StageLite[]; compact?: boolean; showDesc?: boolean; activeColor?: string }) {
   return (
     <View style={{ flexDirection: 'row' }} accessibilityLabel={`Journey: ${stages.map((s) => `${s.title} ${s.status}`).join(', ')}`}>
       {stages.map((s, i) => {
@@ -16,14 +16,14 @@ export function JourneyStepper({ stages, compact, showDesc = true }: { stages: S
         return (
           <View key={s.key} style={{ flex: 1, alignItems: 'center' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' as any }}>
-              <View style={[styles.line, { backgroundColor: i === 0 ? 'transparent' : done || cur ? colors.primary : colors.border }]} />
+              <View style={[styles.line, { backgroundColor: i === 0 ? 'transparent' : done || cur ? activeColor : colors.border }]} />
               <View style={[{ width: size, height: size, borderRadius: size / 2, alignItems: 'center', justifyContent: 'center' },
-                done ? { backgroundColor: colors.primary } : cur ? { borderWidth: compact ? 2 : 3, borderColor: colors.primary, backgroundColor: '#fff' } : { borderWidth: 2, borderColor: colors.borderStrong, backgroundColor: '#fff' }]}>
-                {done ? <Ionicons name="checkmark" size={size * 0.6} color="#fff" /> : cur ? <View style={{ width: size * 0.4, height: size * 0.4, borderRadius: size, backgroundColor: colors.primary }} /> : null}
+                done ? { backgroundColor: activeColor } : cur ? { borderWidth: compact ? 2 : 3, borderColor: activeColor, backgroundColor: '#fff' } : { borderWidth: 2, borderColor: colors.borderStrong, backgroundColor: '#fff' }]}>
+                {done ? <Ionicons name="checkmark" size={size * 0.6} color="#fff" /> : cur ? <View style={{ width: size * 0.4, height: size * 0.4, borderRadius: size, backgroundColor: activeColor }} /> : null}
               </View>
-              <View style={[styles.line, { backgroundColor: i === stages.length - 1 ? 'transparent' : done ? colors.primary : colors.border }]} />
+              <View style={[styles.line, { backgroundColor: i === stages.length - 1 ? 'transparent' : done ? activeColor : colors.border }]} />
             </View>
-            <Text style={[styles.label, compact && { fontSize: 8.5, letterSpacing: -0.2 }, cur && { color: colors.primary, fontFamily: fonts.semibold }]} numberOfLines={2}>{s.title}</Text>
+            <Text style={[styles.label, compact && { fontSize: 8.5, letterSpacing: -0.2 }, cur && { color: activeColor, fontFamily: fonts.semibold }]} numberOfLines={2}>{s.title}</Text>
             {showDesc && !compact && s.short ? <Text style={styles.desc} numberOfLines={3}>{s.short}</Text> : null}
           </View>
         );
@@ -53,10 +53,10 @@ export function StageList({ stages, onOpen }: { stages: (StageLite & { index?: n
         const body = (
           <>
             <View style={{ alignItems: 'center', width: 34 }}>
-              <View style={[styles.node, done && { backgroundColor: colors.success, borderColor: colors.success }, cur && { backgroundColor: colors.primary, borderColor: colors.primary }]}>
+              <View style={[styles.node, done && { backgroundColor: colors.mint, borderColor: colors.mint }, cur && { backgroundColor: colors.primary, borderColor: colors.primary }]}>
                 {done ? <Ionicons name="checkmark" size={16} color="#fff" /> : <Text style={[styles.nodeNum, cur && { color: '#fff' }]}>{i + 1}</Text>}
               </View>
-              {i < stages.length - 1 ? <View style={[styles.vline, done && { backgroundColor: colors.success }]} /> : null}
+              {i < stages.length - 1 ? <View style={[styles.vline, done && { backgroundColor: colors.mint }]} /> : null}
             </View>
             <View style={{ flex: 1, paddingBottom: 18 }}>
               <Text style={[styles.stageTitle, cur && { color: colors.primary }, s.status === 'locked' && { color: colors.textSoft }]}>{s.title}</Text>

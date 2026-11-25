@@ -46,7 +46,7 @@ export default function Chats({ navigation }: any) {
       <FilterPills value={filter} onChange={setFilter} options={[{ key: 'all', label: 'All' }, { key: 'active', label: 'Active' }, { key: 'new', label: 'New' }, { key: 'muted', label: 'Muted' }]} />
       <View style={{ marginTop: space.lg }}>
         {loading && !data ? <SkeletonList rows={5} /> : error && !data ? <ErrorState message={error} onRetry={reload} /> : !items.length ? (
-          <EmptyState icon="chatbubble-ellipses-outline" tint="blue" title={data?.items.length ? 'No chats here' : 'No conversations yet'} text={data?.items.length ? 'Try a different filter.' : 'When both of you express mutual interest, your private conversation unlocks here.'} action={data?.items.length ? undefined : 'Explore Discover'} onAction={() => navigation.navigate('Connections', { tab: 'discover' })} />
+          <EmptyState icon="chatbubble-ellipses-outline" tint="green" title={data?.items.length ? 'No chats here' : 'No conversations yet'} text={data?.items.length ? 'Try a different filter.' : 'When both of you express mutual interest, your private conversation unlocks here.'} action={data?.items.length ? undefined : 'Explore Discover'} onAction={() => navigation.navigate('Connections', { tab: 'discover' })} />
         ) : (
           <View style={styles.list}>
             {items.map((c, i) => <ChatRow key={c.id} c={c} first={i === 0} onPress={() => navigation.navigate('ChatThread', { chatId: c.id })} />)}

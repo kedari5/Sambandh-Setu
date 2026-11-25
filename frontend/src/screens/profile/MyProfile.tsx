@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Svg, { Circle } from 'react-native-svg';
 import { MeApi, errorMessage } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useLayout } from '../../hooks/useLayout';
@@ -40,11 +41,31 @@ export function MyProfile({ navigation }: any) {
     ['briefcase-outline', p.profession || '—', 'Profession', 'amber'],
   ] as const;
   const verified = user.verification.identity?.status === 'verified';
+  const completeness = Math.max(0, Math.min(100, user.completeness.percent));
+  const ringCircumference = 2 * Math.PI * 26;
   const rail = (
     <>
       <Card>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-          <View style={styles.ring}><Text style={styles.ringText}>{user.completeness.percent}%</Text></View>
+          <View style={styles.ring}>
+            <Svg width={60} height={60} viewBox="0 0 60 60" style={StyleSheet.absoluteFill}>
+              <Circle cx={30} cy={30} r={26} fill="none" stroke={colors.border} strokeWidth={5} />
+              <Circle
+                cx={30}
+                cy={30}
+                r={26}
+                fill="none"
+                stroke={colors.primary}
+                strokeWidth={5}
+                strokeDasharray={ringCircumference}
+                strokeDashoffset={ringCircumference * (1 - completeness / 100)}
+                strokeLinecap="round"
+                rotation={-90}
+                origin="30,30"
+              />
+            </Svg>
+            <Text style={styles.ringText}>{Math.round(completeness)}%</Text>
+          </View>
           <View style={{ flex: 1 }}><Text style={styles.h}>Profile completeness</Text><Text style={styles.small}>Complete your profile to get better matches.</Text></View>
         </View>
         <ProgressBar value={user.completeness.percent} style={{ marginVertical: 12 }} />
@@ -53,7 +74,7 @@ export function MyProfile({ navigation }: any) {
             <Ionicons name="ellipse-outline" size={18} color={colors.faint} /><Text style={[styles.body, { flex: 1 }]}>{m.label}</Text><Ionicons name="chevron-forward" size={16} color={colors.faint} />
           </Pressable>
         ))}
-        {!user.completeness.missing.length ? <View style={styles.todo}><Ionicons name="checkmark-circle" size={18} color={colors.success} /><Text style={styles.body}>Your profile is complete</Text></View> : null}
+        {!user.completeness.missing.length ? <View style={styles.todo}><Ionicons name="checkmark-circle" size={18} color={colors.navy} /><Text style={styles.body}>Your profile is complete</Text></View> : null}
       </Card>
       <Card padded={false}>
         <View style={{ padding: 16, paddingBottom: 4, flexDirection: 'row', gap: 10, alignItems: 'center' }}><Ionicons name="shield" size={20} color={colors.primary} /><View><Text style={styles.h}>Privacy & Safety</Text><Text style={styles.small}>Your safety is our priority.</Text></View></View>
@@ -216,7 +237,7 @@ export function MyProfileTabs({ route, navigation }: any) {
               const d = PREFERENCES[k];
               const v = p.preferences?.[k] || {};
               return (
-                <Card key={k} style={wide ? { width: '48.5%' as any } : undefined} onPress={() => navigation.navigate('PreferencesEdit', { section: k })} accessibilityLabel={`${d.title}. Edit`}>
+                <Card key={k} style={wide ? { width: '48.5%' as any } : undefined} hoverStyle={{ backgroundColor: colors.primarySoft, borderColor: colors.primaryLine }} onPress={() => navigation.navigate('PreferencesEdit', { section: k })} accessibilityLabel={`${d.title}. Edit`}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                     <View style={[styles.factIcon, { backgroundColor: colors.tint[d.tint as keyof typeof colors.tint].bg }]}><Ionicons name={d.icon as any} size={16} color={colors.tint[d.tint as keyof typeof colors.tint].fg} /></View>
                     <View style={{ flex: 1 }}><Text style={styles.h}>{d.title}</Text><Text style={styles.small}>{d.subtitle}</Text></View>
@@ -252,7 +273,7 @@ const styles = StyleSheet.create({
   fact: { flexGrow: 1, flexBasis: '30%' as any, minWidth: 120, flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderColor: colors.border, borderRadius: radius.card, padding: 10 },
   factIcon: { width: 32, height: 32, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
   factV: { fontFamily: fonts.semibold, fontSize: 13, color: colors.text },
-  ring: { width: 60, height: 60, borderRadius: 30, borderWidth: 5, borderColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  ring: { width: 60, height: 60, alignItems: 'center', justifyContent: 'center' },
   ringText: { fontFamily: fonts.bold, fontSize: 14, color: colors.text },
   todo: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 40 },
   quick: { flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderColor: colors.border, borderRadius: radius.sm, paddingHorizontal: 12, minHeight: 40, flexBasis: '31%' as any, flexGrow: 1 },

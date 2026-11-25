@@ -1,45 +1,79 @@
+import { Platform } from 'react-native';
+
 /**
- * Sambandh Setu Design System v2.0 tokens (from "Design system.png").
- * Trust Blue #2C67C5 is the single primary colour. No purple/pink primaries.
+ * Shared warm cream, rose, forest-green text, and mint accent tokens for web and native screens.
  */
-export const colors = {
-  primary: '#2C67C5',
-  primaryHover: '#2458AA',
-  primarySoft: '#E8F0FF',
-  primaryLine: '#C9DAF6',
-  navy: '#183B70',
-  bg: '#F8FAFC',
-  bgTint: '#F3F7FD',
-  surface: '#FFFFFF',
-  border: '#E2E8F0',
-  borderStrong: '#CBD5E1',
-  text: '#0F172A',
-  textSoft: '#334155',
-  muted: '#64748B',
-  faint: '#94A3B8',
-  disabled: '#CBD5E1',
-  success: '#10B981',
-  successSoft: '#E7F8F1',
+const webColors = {
+  primary: '#C14778',
+  primaryText: '#923454',
+  primaryHover: '#AA3867',
+  primarySoft: '#FBE5ED',
+  primaryLine: '#EAB9CC',
+  primaryDisabled: '#E5A4BC',
+  navy: '#173F32',
+  bg: '#F8F5E9',
+  bgTint: '#F6ECE8',
+  surface: '#FFFDF7',
+  border: '#E8DAD8',
+  borderStrong: '#D7C6C5',
+  text: '#263B31',
+  textSoft: '#42574B',
+  muted: '#647067',
+  faint: '#929B94',
+  disabled: '#D8CBCD',
+  success: '#3D6749',
+  successSoft: '#E7F1E9',
+  greenSurface: '#D7E9DE',
+  mint: '#6EAE90',
   warning: '#C69245',
   warningSoft: '#FBF3E6',
   danger: '#B55353',
   dangerStrong: '#D93B3B',
   dangerSoft: '#FCEDED',
-  online: '#22C55E',
-  overlay: 'rgba(15, 23, 42, 0.45)',
+  online: '#6EAE90',
+  overlay: 'rgba(38, 59, 49, 0.45)',
   // Soft tints used behind section icons (Settings, Profile sections, Guide cards).
   tint: {
-    blue: { fg: '#2C67C5', bg: '#E8F0FF' },
-    purple: { fg: '#7C5CDB', bg: '#F1ECFD' },
-    green: { fg: '#0F9F6E', bg: '#E7F8F1' },
+    blue: { fg: '#923454', bg: '#FBE5ED' },
+    purple: { fg: '#923454', bg: '#FBE5ED' },
+    green: { fg: '#173F32', bg: '#E7F1E9' },
     orange: { fg: '#E07B2E', bg: '#FDF0E6' },
-    pink: { fg: '#D9467A', bg: '#FDEBF2' },
-    teal: { fg: '#0E9494', bg: '#E4F6F6' },
+    pink: { fg: '#923454', bg: '#FBE5ED' },
+    teal: { fg: '#173F32', bg: '#E7F1E9' },
     amber: { fg: '#C98A12', bg: '#FDF5E1' },
     red: { fg: '#D93B3B', bg: '#FCEDED' },
-    slate: { fg: '#475569', bg: '#F1F5F9' },
+    slate: { fg: '#647067', bg: '#F1EEE8' },
   },
 };
+
+const appColors = {
+  ...webColors,
+  primary: '#C14778',
+  primaryText: '#923454',
+  primaryHover: '#AA3867',
+  primarySoft: '#FBE5ED',
+  primaryLine: '#EAB9CC',
+  primaryDisabled: '#E5A4BC',
+  navy: '#173F32',
+  bg: '#F8F5E9',
+  bgTint: '#F6ECE8',
+  surface: '#FFFDF7',
+  border: '#E8DAD8',
+  borderStrong: '#D7C6C5',
+  text: '#263B31',
+  textSoft: '#42574B',
+  muted: '#647067',
+  faint: '#929B94',
+  disabled: '#D8CBCD',
+  tint: {
+    ...webColors.tint,
+    blue: { fg: '#923454', bg: '#FBE5ED' },
+    purple: { fg: '#923454', bg: '#FBE5ED' },
+    pink: { fg: '#923454', bg: '#FBE5ED' },
+  },
+};
+
+export const colors = Platform.OS === 'web' ? webColors : appColors;
 export type TintName = keyof typeof colors.tint;
 
 /** 8px soft grid. */
@@ -69,10 +103,10 @@ export const type = {
 };
 
 export const shadow = {
-  card: { shadowColor: '#0F172A', shadowOpacity: 0.05, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
-  elevated: { shadowColor: '#0F172A', shadowOpacity: 0.08, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 4 },
-  modal: { shadowColor: '#0F172A', shadowOpacity: 0.12, shadowRadius: 32, shadowOffset: { width: 0, height: 12 }, elevation: 12 },
-  button: { shadowColor: '#2C67C5', shadowOpacity: 0.22, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 3 },
+  card: { shadowColor: '#263B31', shadowOpacity: 0.05, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
+  elevated: { shadowColor: '#263B31', shadowOpacity: 0.08, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 4 },
+  modal: { shadowColor: '#263B31', shadowOpacity: 0.12, shadowRadius: 32, shadowOffset: { width: 0, height: 12 }, elevation: 12 },
+  button: { shadowColor: '#C14778', shadowOpacity: 0.22, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 3 },
 };
 
 export const MIN_TAP = 44;

@@ -188,7 +188,7 @@ export function Stage({ route, navigation }: any) {
                 </Card>
               </View>
               <Card style={{ backgroundColor: '#EEF9F3', borderColor: '#CDEFDD' }}>
-                <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 8 }}><Ionicons name="shield-checkmark" size={20} color={colors.success} /><Text style={styles.h}>Helpful Reminders</Text></View>
+                <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 8 }}><Ionicons name="shield-checkmark" size={20} color={colors.navy} /><Text style={styles.h}>Helpful Reminders</Text></View>
                 <CheckItem text="Be yourself and take your time." />
                 <CheckItem text="You can skip any topic that you're not ready for." />
                 <CheckItem text="Setu Guide suggests topics, but you decide what to discuss." />
@@ -200,8 +200,8 @@ export function Stage({ route, navigation }: any) {
               <Card>
                 <Text style={styles.h}>Where you both are</Text>
                 <View style={{ marginTop: 10, gap: 8 }}>
-                  <View style={styles.statusRow}><Ionicons name={s.myDone ? 'checkmark-circle' : 'ellipse-outline'} size={20} color={s.myDone ? colors.success : colors.faint} /><Text style={styles.body}>You: {s.myDone ? 'completed' : 'in progress'}</Text></View>
-                  <View style={styles.statusRow}><Ionicons name={s.partnerDone ? 'checkmark-circle' : 'ellipse-outline'} size={20} color={s.partnerDone ? colors.success : colors.faint} /><Text style={styles.body}>{partner}: {s.partnerDone ? 'completed' : 'in progress'}</Text></View>
+                  <View style={styles.statusRow}><Ionicons name={s.myDone ? 'checkmark-circle' : 'ellipse-outline'} size={20} color={s.myDone ? colors.navy : colors.faint} /><Text style={styles.body}>You: {s.myDone ? 'completed' : 'in progress'}</Text></View>
+                  <View style={styles.statusRow}><Ionicons name={s.partnerDone ? 'checkmark-circle' : 'ellipse-outline'} size={20} color={s.partnerDone ? colors.navy : colors.faint} /><Text style={styles.body}>{partner}: {s.partnerDone ? 'completed' : 'in progress'}</Text></View>
                 </View>
               </Card>
               <InfoNote text={data.content.description} />

@@ -9,8 +9,8 @@ export function Segmented<T extends string>({ options, value, onChange, style }:
       {options.map((o) => {
         const on = o.key === value;
         return (
-          <Pressable key={o.key} onPress={() => onChange(o.key)} accessibilityRole="tab" accessibilityState={{ selected: on }} style={({ hovered }: any) => [styles.segItem, on && styles.segOn, hovered && !on && { backgroundColor: '#EEF2F8' }]}>
-            <Text style={[styles.segText, on && { color: '#fff' }]}>{o.label}{o.count ? ` (${o.count})` : ''}</Text>
+          <Pressable key={o.key} onPress={() => onChange(o.key)} accessibilityRole="tab" accessibilityState={{ selected: on }} style={({ hovered }: any) => [styles.segItem, on && styles.segOn, hovered && !on && styles.segHover]}>
+            {({ hovered }: any) => <Text style={[styles.segText, on && { color: '#fff' }, hovered && !on && { color: colors.primaryText }]}>{o.label}{o.count ? ` (${o.count})` : ''}</Text>}
           </Pressable>
         );
       })}
@@ -26,7 +26,7 @@ export function UnderlineTabs<T extends string>({ options, value, onChange, styl
         const on = o.key === value;
         return (
           <Pressable key={o.key} onPress={() => onChange(o.key)} accessibilityRole="tab" accessibilityState={{ selected: on }} style={[styles.ulItem, on && styles.ulOn]}>
-            <Text style={[styles.ulText, on && { color: colors.primary, fontFamily: fonts.semibold }]}>{o.label}</Text>
+            {({ hovered }: any) => <Text style={[styles.ulText, (on || hovered) && { color: colors.primary, fontFamily: fonts.semibold }]}>{o.label}</Text>}
           </Pressable>
         );
       })}
@@ -41,8 +41,8 @@ export function FilterPills<T extends string>({ options, value, onChange }: { op
       {options.map((o) => {
         const on = o.key === value;
         return (
-          <Pressable key={o.key} onPress={() => onChange(o.key)} accessibilityRole="tab" accessibilityState={{ selected: on }} style={[styles.pill, on && styles.pillOn]}>
-            <Text style={[styles.pillText, on && { color: '#fff' }]}>{o.label}</Text>
+          <Pressable key={o.key} onPress={() => onChange(o.key)} accessibilityRole="tab" accessibilityState={{ selected: on }} style={({ hovered }: any) => [styles.pill, on && styles.pillOn, hovered && !on && styles.pillHover]}>
+            {({ hovered }: any) => <Text style={[styles.pillText, on && { color: '#fff' }, hovered && !on && { color: colors.primaryText }]}>{o.label}</Text>}
           </Pressable>
         );
       })}
@@ -51,15 +51,17 @@ export function FilterPills<T extends string>({ options, value, onChange }: { op
 }
 
 const styles = StyleSheet.create({
-  seg: { flexDirection: 'row', backgroundColor: '#E9EEF5', borderRadius: radius.pill, padding: 4, gap: 4 },
+  seg: { flexDirection: 'row', backgroundColor: colors.greenSurface, borderRadius: radius.pill, padding: 4, gap: 4 },
   segItem: { flex: 1, minHeight: 40, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 },
   segOn: { backgroundColor: colors.primary },
-  segText: { fontFamily: fonts.semibold, fontSize: 14, color: colors.textSoft },
+  segHover: { backgroundColor: colors.primarySoft },
+  segText: { fontFamily: fonts.semibold, fontSize: 14, color: colors.navy },
   ulWrap: { borderBottomWidth: 1, borderBottomColor: colors.border, flexGrow: 0 },
   ulItem: { paddingHorizontal: 12, minHeight: 44, justifyContent: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
   ulOn: { borderBottomColor: colors.primary },
   ulText: { fontFamily: fonts.medium, fontSize: 14.5, color: colors.muted },
-  pill: { borderRadius: radius.pill, paddingHorizontal: 16, minHeight: 34, justifyContent: 'center', backgroundColor: '#EEF2F8' },
+  pill: { borderRadius: radius.pill, paddingHorizontal: 16, minHeight: 34, justifyContent: 'center', backgroundColor: colors.greenSurface },
+  pillHover: { backgroundColor: colors.primarySoft },
   pillOn: { backgroundColor: colors.primary },
   pillText: { fontFamily: fonts.semibold, fontSize: 13, color: colors.textSoft },
 });

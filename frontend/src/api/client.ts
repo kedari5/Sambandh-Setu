@@ -2,11 +2,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
 /**
- * API base URL. On the web the app and the API share one origin (Vercel), so '/api' is used.
- * Native builds and local development set EXPO_PUBLIC_API_URL (e.g. http://localhost:5000/api).
+ * Production web uses the same-origin API on Vercel. Local web development uses the API
+ * server on port 5000; other native/LAN builds can set EXPO_PUBLIC_API_URL explicitly.
  */
 const envUrl = process.env.EXPO_PUBLIC_API_URL?.replace(/\/+$/, '');
-export const API_BASE = envUrl || (Platform.OS === 'web' ? '/api' : 'https://sambandh-setu.vercel.app/api');
+const isLocalWeb = Platform.OS === 'web' && typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+const localWebApiUrl = isLocalWeb
+  ? `${window.location.protocol}//${window.location.hostname}:5000/api`
+  : undefined;
+export const API_BASE = envUrl || localWebApiUrl || (Platform.OS === 'web' ? '/api' : 'https://sambandh-setu.vercel.app/api');
 
 /** Absolute origin for relative asset URLs such as /api/photos/... */
 const apiOrigin = API_BASE.startsWith('http') ? API_BASE.replace(/\/api(\/v1)?$/, '') : '';
@@ -70,7 +75,12 @@ export async function request<T = any>(method: string, path: string, body?: unkn
   } finally {
     clearTimeout(timer);
   }
-  const json: any = await res.json().catch(() => ({}));
+  let json: any;
+  try {
+    json = await res.json();
+  } catch {
+    throw new ApiError(res.status, 'INVALID_RESPONSE', 'The server returned an invalid response. Please try again.');
+  }
   if (!res.ok) {
     const err = json?.error || {};
     if (res.status === 401 && token && onUnauthorized) onUnauthorized();

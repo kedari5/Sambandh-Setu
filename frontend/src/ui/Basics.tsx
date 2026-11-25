@@ -55,29 +55,30 @@ export function Logo({ tagline = true, size = 36, serif = false }: { tagline?: b
   );
 }
 
-export function Card({ children, style, onPress, padded = true, accessibilityLabel, tone = 'surface' }: {
-  children: React.ReactNode; style?: StyleProp<ViewStyle>; onPress?: () => void; padded?: boolean; accessibilityLabel?: string; tone?: 'surface' | 'soft' | 'tint';
+export function Card({ children, style, hoverStyle, onPress, padded = true, accessibilityLabel, tone = 'surface' }: {
+  children: React.ReactNode; style?: StyleProp<ViewStyle>; hoverStyle?: StyleProp<ViewStyle>; onPress?: () => void; padded?: boolean; accessibilityLabel?: string; tone?: 'surface' | 'soft' | 'tint';
 }) {
   const base = [styles.card, padded && styles.cardPad, tone === 'soft' && styles.cardSoft, tone === 'tint' && styles.cardTint, style];
   if (!onPress) return <View style={base}>{children}</View>;
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={accessibilityLabel} style={({ pressed, hovered }: any) => [base, (pressed || hovered) && styles.cardHover]}>
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={accessibilityLabel} style={({ pressed, hovered }: any) => [base, (pressed || hovered) && styles.cardHover, (pressed || hovered) && hoverStyle]}>
       {children}
     </Pressable>
   );
 }
 
-export function Avatar({ uri, name, size = 44, online, rounded = false, style }: { uri?: string | null; name?: string; size?: number; online?: boolean; rounded?: boolean; style?: StyleProp<ViewStyle> }) {
+export function Avatar({ uri, name, size = 44, online, rounded = false, style, tone }: { uri?: string | null; name?: string; size?: number; online?: boolean; rounded?: boolean; style?: StyleProp<ViewStyle>; tone?: 'pink' | 'green' }) {
   const initials = (name || '?').split(/\s+/).filter(Boolean).slice(0, 2).map((s) => s[0]?.toUpperCase()).join('') || '?';
   const r = rounded ? Math.round(size * 0.18) : size / 2;
   const src = assetUrl(uri || undefined);
+  const fallback = tone === 'pink' ? [colors.primarySoft, colors.primaryText] : tone === 'green' ? [colors.successSoft, colors.success] : [colors.primarySoft, colors.primary];
   return (
     <View style={[{ width: size, height: size }, style]}>
       {src ? (
         <Image source={{ uri: src }} style={{ width: size, height: size, borderRadius: r, backgroundColor: colors.primarySoft }} accessibilityLabel={name ? `${name}'s photo` : 'Photo'} />
       ) : (
-        <View style={{ width: size, height: size, borderRadius: r, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }} accessibilityLabel={name}>
-          <Text style={{ fontFamily: fonts.semibold, fontSize: Math.max(11, size * 0.36), color: colors.primary }}>{initials}</Text>
+        <View style={{ width: size, height: size, borderRadius: r, backgroundColor: fallback[0], alignItems: 'center', justifyContent: 'center' }} accessibilityLabel={name}>
+          <Text style={{ fontFamily: fonts.semibold, fontSize: Math.max(11, size * 0.36), color: fallback[1] }}>{initials}</Text>
         </View>
       )}
       {online ? <View style={[styles.online, { width: Math.max(10, size * 0.24), height: Math.max(10, size * 0.24), borderRadius: size }]} accessibilityLabel="Online" /> : null}

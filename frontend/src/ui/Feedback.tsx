@@ -1,19 +1,25 @@
 import React, { useEffect, useRef } from 'react';
-import { ActivityIndicator, Animated, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { ActivityIndicator, Animated, Platform, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, radius, space, TintName } from '../theme';
 import { Button } from './Button';
 import type { IconName } from './Basics';
 
-/** Soft blue info box ("You are in control", "Your privacy matters"). */
-export function InfoNote({ title, text, icon = 'information-circle', tone = 'blue', style, children }: { title?: string; text?: string; icon?: IconName; tone?: 'blue' | 'green' | 'amber' | 'red'; style?: StyleProp<ViewStyle>; children?: React.ReactNode }) {
-  const map = { blue: [colors.primarySoft, colors.primary, colors.primaryLine], green: [colors.successSoft, '#0F9F6E', '#BFEBD9'], amber: [colors.warningSoft, '#A8752A', '#F1DDBB'], red: [colors.dangerSoft, colors.danger, '#F3C9C9'] } as const;
-  const [bg, fg, line] = map[tone];
+/** Inline notice with semantic color tones. */
+export function InfoNote({ title, text, icon = 'information-circle', tone = 'blue', style, children }: { title?: string; text?: string; icon?: IconName; tone?: 'blue' | 'pink' | 'green' | 'amber' | 'red'; style?: StyleProp<ViewStyle>; children?: React.ReactNode }) {
+  const map = {
+    blue: { bg: colors.primarySoft, icon: colors.primary, line: colors.primaryLine, text: colors.primary },
+    pink: { bg: colors.primarySoft, icon: colors.primaryText, line: colors.primaryLine, text: colors.primaryText },
+    green: { bg: colors.successSoft, icon: colors.navy, line: '#D3E5D6', text: colors.success },
+    amber: { bg: colors.warningSoft, icon: '#A8752A', line: '#F1DDBB', text: '#7A5418' },
+    red: { bg: colors.dangerSoft, icon: colors.danger, line: '#F3C9C9', text: colors.danger },
+  } as const;
+  const { bg, icon: iconColor, line, text: textColor } = map[tone];
   return (
     <View style={[styles.note, { backgroundColor: bg, borderColor: line }, style]}>
-      <Ionicons name={icon} size={20} color={fg} style={{ marginTop: 1 }} />
+      <Ionicons name={icon} size={20} color={iconColor} style={{ marginTop: 1 }} />
       <View style={{ flex: 1 }}>
-        {title ? <Text style={[styles.noteTitle, { color: fg }]}>{title}</Text> : null}
+        {title ? <Text style={[styles.noteTitle, { color: textColor }]}>{title}</Text> : null}
         {text ? <Text style={styles.noteText}>{text}</Text> : null}
         {children}
       </View>
@@ -22,14 +28,14 @@ export function InfoNote({ title, text, icon = 'information-circle', tone = 'blu
 }
 
 /** "11 · Feedback & System States": zero placeholder dead-ends. */
-export function EmptyState({ icon = 'chatbubble-ellipses-outline', title, text, action, onAction, tint = 'slate', style }: { icon?: IconName; title: string; text?: string; action?: string; onAction?: () => void; tint?: TintName; style?: any }) {
+export function EmptyState({ icon = 'chatbubble-ellipses-outline', title, text, action, onAction, tint = 'slate', actionTone, style }: { icon?: IconName; title: string; text?: string; action?: string; onAction?: () => void; tint?: TintName; actionTone?: 'pink' | 'green'; style?: any }) {
   const t = colors.tint[tint];
   return (
     <View style={[styles.empty, style]}>
       <View style={[styles.emptyIcon, { backgroundColor: t.bg }]}><Ionicons name={icon} size={24} color={t.fg} /></View>
       <Text style={styles.emptyTitle}>{title}</Text>
       {text ? <Text style={styles.emptyText}>{text}</Text> : null}
-      {action && onAction ? <Button title={action} variant="secondary" size="sm" full={false} onPress={onAction} style={{ marginTop: space.md, alignSelf: 'center' }} /> : null}
+      {action && onAction ? <Button title={action} variant="secondary" size="sm" full={false} tone={actionTone} onPress={onAction} style={{ marginTop: space.md, alignSelf: 'center' }} /> : null}
     </View>
   );
 }
@@ -50,13 +56,13 @@ export function Skeleton({ height = 16, width = '100%', radius: r = 8, style }: 
   const pulse = useRef(new Animated.Value(0.5)).current;
   useEffect(() => {
     const loop = Animated.loop(Animated.sequence([
-      Animated.timing(pulse, { toValue: 1, duration: 700, useNativeDriver: true }),
-      Animated.timing(pulse, { toValue: 0.5, duration: 700, useNativeDriver: true }),
+      Animated.timing(pulse, { toValue: 1, duration: 700, useNativeDriver: Platform.OS !== 'web' }),
+      Animated.timing(pulse, { toValue: 0.5, duration: 700, useNativeDriver: Platform.OS !== 'web' }),
     ]));
     loop.start();
     return () => loop.stop();
   }, [pulse]);
-  return <Animated.View style={[{ height, width: width as any, borderRadius: r, backgroundColor: '#E6ECF4', opacity: pulse }, style]} />;
+  return <Animated.View style={[{ height, width: width as any, borderRadius: r, backgroundColor: colors.bgTint, opacity: pulse }, style]} />;
 }
 
 export function SkeletonList({ rows = 3 }: { rows?: number }) {
@@ -74,28 +80,29 @@ export function SkeletonList({ rows = 3 }: { rows?: number }) {
 
 const PILL: Record<string, { label: string; fg: string; bg: string; icon?: IconName }> = {
   interest_sent: { label: 'Interest Sent', fg: colors.primary, bg: colors.primarySoft },
-  interest_received: { label: 'Interested in you', fg: '#C2416B', bg: '#FDEBF2', icon: 'heart' },
-  mutual: { label: 'Mutual Connection', fg: '#0F9F6E', bg: colors.successSoft },
-  waiting: { label: 'Waiting for response', fg: colors.muted, bg: '#F1F5F9', icon: 'time-outline' },
+  interest_received: { label: 'Interested in you', fg: colors.primaryText, bg: colors.primarySoft, icon: 'heart' },
+  mutual: { label: 'Mutual Connection', fg: colors.success, bg: colors.successSoft },
+  waiting: { label: 'Waiting for response', fg: colors.muted, bg: colors.bgTint, icon: 'time-outline' },
   paused: { label: 'Paused', fg: '#A8752A', bg: colors.warningSoft, icon: 'pause' },
   closed: { label: 'Closed', fg: colors.danger, bg: colors.dangerSoft },
-  locked: { label: 'Locked', fg: colors.faint, bg: '#F1F5F9', icon: 'lock-closed' },
+  locked: { label: 'Locked', fg: colors.faint, bg: colors.bgTint, icon: 'lock-closed' },
   current: { label: 'Current', fg: colors.primary, bg: colors.primarySoft },
-  completed: { label: 'Completed', fg: '#0F9F6E', bg: colors.successSoft, icon: 'checkmark' },
+  completed: { label: 'Completed', fg: colors.success, bg: colors.successSoft, icon: 'checkmark' },
   in_review: { label: 'In review', fg: '#A8752A', bg: colors.warningSoft, icon: 'time-outline' },
-  verified: { label: 'Verified', fg: '#0F9F6E', bg: colors.successSoft, icon: 'checkmark-circle' },
+  verified: { label: 'Verified', fg: colors.success, bg: colors.successSoft, icon: 'checkmark-circle' },
   needs_action: { label: 'Needs action', fg: colors.danger, bg: colors.dangerSoft, icon: 'alert-circle' },
-  active: { label: 'Active', fg: '#0F9F6E', bg: colors.successSoft },
+  active: { label: 'Active', fg: colors.success, bg: colors.successSoft },
   pending: { label: 'Pending', fg: '#A8752A', bg: colors.warningSoft },
-  online: { label: 'Online', fg: '#0F9F6E', bg: colors.successSoft },
+  online: { label: 'Online', fg: colors.success, bg: colors.successSoft },
 };
 
 /** State pill from "07 & 08 · Relationship & Setu Journey States". */
 export function StatePill({ state, label }: { state: keyof typeof PILL | string; label?: string }) {
   const p = PILL[state] || { label: label || state, fg: colors.primary, bg: colors.primarySoft };
+  const iconColor = p.bg === colors.successSoft ? colors.navy : p.fg;
   return (
     <View style={[styles.pill, { backgroundColor: p.bg }]}>
-      {p.icon ? <Ionicons name={p.icon} size={11} color={p.fg} style={{ marginRight: 4 }} /> : null}
+      {p.icon ? <Ionicons name={p.icon} size={11} color={iconColor} style={{ marginRight: 4 }} /> : null}
       <Text style={[styles.pillText, { color: p.fg }]}>{label || p.label}</Text>
     </View>
   );
@@ -103,9 +110,10 @@ export function StatePill({ state, label }: { state: keyof typeof PILL | string;
 
 export function StatusDot({ status, label }: { status: 'active' | 'pending' | 'connected'; label?: string }) {
   const c = status === 'pending' ? colors.warning : colors.success;
+  const dot = status === 'pending' ? colors.warning : colors.mint;
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: c }} />
+      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: dot }} />
       <Text style={{ fontFamily: fonts.medium, fontSize: 12.5, color: c }}>{label || (status === 'pending' ? 'Pending' : status === 'connected' ? 'Connected' : 'Active')}</Text>
     </View>
   );
@@ -114,17 +122,17 @@ export function StatusDot({ status, label }: { status: 'active' | 'pending' | 'c
 export function ProgressBar({ value, height = 6, style }: { value: number; height?: number; style?: any }) {
   const pct = Math.max(0, Math.min(100, value));
   return (
-    <View style={[{ height, borderRadius: height, backgroundColor: '#E2E8F0', overflow: 'hidden' }, style]} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: Math.round(pct) }}>
+    <View style={[{ height, borderRadius: height, backgroundColor: colors.border, overflow: 'hidden' }, style]} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: Math.round(pct) }}>
       <View style={{ width: `${pct}%` as any, height, borderRadius: height, backgroundColor: colors.primary }} />
     </View>
   );
 }
 
 /** Segmented step bar used by onboarding ("Step 3 of 5"). */
-export function StepBar({ step, total }: { step: number; total: number }) {
+export function StepBar({ step, total, activeColor = colors.primary }: { step: number; total: number; activeColor?: string }) {
   return (
     <View style={{ flexDirection: 'row', gap: 6 }} accessibilityLabel={`Step ${step} of ${total}`}>
-      {Array.from({ length: total }).map((_, i) => <View key={i} style={{ flex: 1, height: 5, borderRadius: 3, backgroundColor: i < step ? colors.primary : '#DCE3EC' }} />)}
+      {Array.from({ length: total }).map((_, i) => <View key={i} style={{ flex: 1, height: 5, borderRadius: 3, backgroundColor: i < step ? activeColor : Platform.OS === 'web' ? '#DCE3EC' : colors.border }} />)}
     </View>
   );
 }
@@ -132,8 +140,8 @@ export function StepBar({ step, total }: { step: number; total: number }) {
 /** Success illustration: check in a soft circle with confetti dots. */
 export function SuccessMark({ tone = 'green', icon = 'checkmark', size = 120 }: { tone?: 'green' | 'blue' | 'red' | 'amber'; icon?: IconName; size?: number }) {
   const fg = { green: '#16A36A', blue: colors.primary, red: colors.dangerStrong, amber: '#C98A12' }[tone];
-  const bg = { green: '#DDF5EA', blue: '#E1EBFC', red: '#FCE3E3', amber: '#FBEFD5' }[tone];
-  const dots = [[-8, 20, '#F59E0B'], [size + 2, 30, '#2C67C5'], [10, size - 4, '#EC4899'], [size - 10, size + 2, '#10B981'], [size / 2, -14, '#2C67C5'], [-14, size / 2 + 10, '#8B5CF6']] as const;
+  const bg = { green: '#DDF5EA', blue: Platform.OS === 'web' ? '#E1EBFC' : colors.primarySoft, red: '#FCE3E3', amber: '#FBEFD5' }[tone];
+  const dots = [[-8, 20, '#F59E0B'], [size + 2, 30, colors.primary], [10, size - 4, '#EC4899'], [size - 10, size + 2, '#10B981'], [size / 2, -14, colors.primary], [-14, size / 2 + 10, '#8B5CF6']] as const;
   return (
     <View style={{ width: size, height: size, alignSelf: 'center', marginVertical: space.xl }}>
       {dots.map(([x, y, c], i) => <View key={i} style={{ position: 'absolute', left: x, top: y, width: 7, height: 7, borderRadius: i % 2 ? 2 : 4, backgroundColor: c, transform: [{ rotate: `${i * 25}deg` }] }} />)}

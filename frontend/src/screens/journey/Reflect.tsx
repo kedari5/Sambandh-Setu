@@ -84,7 +84,7 @@ function Privacy({ partner, onContinue }: { partner: string; onContinue: (s: str
     <>
       <Card tone="soft"><Ionicons name="shield-checkmark-outline" size={22} color={colors.primary} /><Text style={[styles.h, { marginTop: 8 }]}>Your Privacy Matters</Text><Text style={styles.body}>You are in control of what you share. There are no right or wrong answers. Be honest and open.</Text></Card>
       <Card style={{ backgroundColor: '#FFF8EC', borderColor: '#F3E1BD' }}><Ionicons name="bulb-outline" size={22} color="#C98A12" /><Text style={[styles.h, { marginTop: 8, marginBottom: 8 }]}>Tips for a Good Reflection</Text><CheckItem tone="blue" text="Take your time to think and answer." /><CheckItem tone="blue" text="Be honest about your preferences." /><CheckItem tone="blue" text="You can change your sharing choice anytime before submitting." /></Card>
-      <Card style={{ backgroundColor: '#EEF9F3', borderColor: '#CDEFDD' }}><Ionicons name="lock-closed-outline" size={22} color={colors.success} /><Text style={[styles.h, { marginTop: 8 }]}>Your Data is Safe</Text><Text style={styles.body}>Your answers are private and secure. We never share your information with anyone without your permission.</Text></Card>
+      <Card style={{ backgroundColor: '#EEF9F3', borderColor: '#CDEFDD' }}><Ionicons name="lock-closed-outline" size={22} color={colors.navy} /><Text style={[styles.h, { marginTop: 8 }]}>Your Data is Safe</Text><Text style={styles.body}>Your answers are private and secure. We never share your information with anyone without your permission.</Text></Card>
     </>
   );
   return (
@@ -145,7 +145,7 @@ function QuestionStep({ data, setData, index, partner, defaultSharing, connectio
     <>
       <Card style={{ backgroundColor: '#FFF8EC', borderColor: '#F3E1BD' }}><Ionicons name="bulb-outline" size={22} color="#C98A12" /><Text style={[styles.h, { marginTop: 8 }]}>Why we ask this?</Text><Text style={styles.body}>{q.why}</Text></Card>
       <Card tone="soft"><Text style={[styles.h, { marginBottom: 8 }]}>Tips for your answer</Text><CheckItem tone="blue" text="Think about what truly matters to you." /><CheckItem tone="blue" text="Consider your past experiences and what you have learned." /><CheckItem tone="blue" text="There are no right or wrong answers. Choose what feels true to you." /></Card>
-      <Card style={{ backgroundColor: '#EEF9F3', borderColor: '#CDEFDD' }}><Ionicons name="lock-closed-outline" size={20} color={colors.success} /><Text style={[styles.h, { marginTop: 8 }]}>Your Data is Safe</Text><Text style={styles.body}>Your answers are private and secure. We never share your information with anyone without your permission.</Text></Card>
+      <Card style={{ backgroundColor: '#EEF9F3', borderColor: '#CDEFDD' }}><Ionicons name="lock-closed-outline" size={20} color={colors.navy} /><Text style={[styles.h, { marginTop: 8 }]}>Your Data is Safe</Text><Text style={styles.body}>Your answers are private and secure. We never share your information with anyone without your permission.</Text></Card>
     </>
   );
 

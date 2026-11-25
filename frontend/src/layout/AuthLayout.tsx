@@ -3,9 +3,25 @@ import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import Svg, { Circle, Defs, LinearGradient, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { colors, fonts, radius, shadow, space } from '../theme';
 import { useLayout } from '../hooks/useLayout';
 import { Button, IconName, Logo } from '../ui';
+
+export const AUTH_APP_PALETTE = {
+  background: '#F8F5E9',
+  surface: '#FFFDF7',
+  text: '#263B31',
+  label: '#294237',
+  border: '#D8DDD2',
+  focusBorder: colors.primary,
+  placeholder: '#849188',
+  icon: '#668073',
+  helper: '#627067',
+  heading: '#173F32',
+  body: '#5C6E63',
+  gradient: { start: '#FBF8EE', middle: colors.bgTint, end: colors.primarySoft },
+};
 
 export function MarketingHeader({ active = 'Home' }: { active?: string }) {
   const nav = useNavigation<any>();
@@ -37,26 +53,62 @@ type Point = { icon: IconName; title: string; text: string };
  * Sign-in / sign-up / onboarding frame. Desktop: marketing header, illustrated panel with the
  * headline on the left, white form card on the right. Phone: the App screens (no illustration).
  */
-export function AuthLayout({ eyebrow, heading, highlight, intro, points, steps, currentStep, children, onBack, mobileTitle, mobileSubtitle, footer, cardMax = 480 }: {
+export function AuthLayout({ eyebrow, heading, highlight, intro, points, steps, currentStep, children, onBack, mobileTitle, mobileSubtitle, footer, cardMax = 480, mobilePalette, mobileLogo }: {
   eyebrow?: string; heading: string; highlight?: string; intro?: string; points?: Point[]; steps?: { title: string; text: string }[]; currentStep?: number;
   children: React.ReactNode; onBack?: () => void; mobileTitle?: string; mobileSubtitle?: string; footer?: React.ReactNode; cardMax?: number;
+  mobilePalette?: {
+    background?: string;
+    heading?: string;
+    body?: string;
+    icon?: string;
+    gradient?: { start: string; middle: string; end: string };
+  };
+  mobileLogo?: boolean;
 }) {
   const { wide } = useLayout();
   if (!wide) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bgTint }} edges={['top', 'left', 'right', 'bottom']}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: mobilePalette?.background || colors.bgTint }} edges={['top', 'left', 'right', 'bottom']}>
+        {mobilePalette?.gradient ? (
+          <Svg pointerEvents="none" style={StyleSheet.absoluteFill} width="100%" height="100%" preserveAspectRatio="none">
+            <Defs>
+              <LinearGradient id="authMobileBackgroundGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <Stop offset="0%" stopColor={mobilePalette.gradient.start} />
+                <Stop offset="55%" stopColor={mobilePalette.gradient.middle} />
+                <Stop offset="100%" stopColor={mobilePalette.gradient.end} />
+              </LinearGradient>
+              <RadialGradient id="authMobilePinkGlow" cx="50%" cy="50%" r="50%">
+                <Stop offset="0%" stopColor={colors.primary} stopOpacity="0.22" />
+                <Stop offset="100%" stopColor={colors.primary} stopOpacity="0" />
+              </RadialGradient>
+              <RadialGradient id="authMobileGreenGlow" cx="50%" cy="50%" r="50%">
+                <Stop offset="0%" stopColor="#4C8A70" stopOpacity="0.18" />
+                <Stop offset="100%" stopColor="#4C8A70" stopOpacity="0" />
+              </RadialGradient>
+            </Defs>
+            <Rect width="100%" height="100%" fill="url(#authMobileBackgroundGradient)" />
+            <Circle cx="92%" cy="14%" r="190" fill="url(#authMobilePinkGlow)" />
+            <Circle cx="8%" cy="86%" r="190" fill="url(#authMobileGreenGlow)" />
+          </Svg>
+        ) : null}
         <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40, flexGrow: 1 }} keyboardShouldPersistTaps="handled">
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: space.lg, minHeight: 44 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: space.lg, minHeight: 44, position: 'relative' }}>
             {onBack ? (
-              <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="Back" hitSlop={8} style={{ width: 44, height: 44, justifyContent: 'center' }}>
-                <Ionicons name="arrow-back" size={24} color={colors.text} />
+              <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="Back" hitSlop={8} style={{ position: 'absolute', left: 0, top: 0, width: 44, height: 44, justifyContent: 'center' }}>
+                <Ionicons name="arrow-back" size={24} color={mobilePalette?.icon || colors.text} />
               </Pressable>
-            ) : <Logo tagline={false} serif size={32} />}
+            ) : null}
+            {mobileLogo ? (
+              <View style={styles.mobileBranding}>
+                <Image source={require('../../assets/brand-logo.png')} style={styles.mobileBrandingLogo} resizeMode="contain" accessibilityLabel="Sambandh Setu logo" />
+                <Text style={styles.mobileBrandingName}>Sambandh Setu</Text>
+              </View>
+            ) : !onBack ? <Logo tagline={false} serif size={32} /> : null}
           </View>
           {mobileTitle !== '' ? (
             <View style={{ marginBottom: space.xl }}>
-              <Text style={styles.mTitle} accessibilityRole="header">{mobileTitle || `${heading}${highlight ? ` ${highlight}` : ''}`}</Text>
-              {mobileSubtitle || intro ? <Text style={styles.mSub}>{mobileSubtitle || intro}</Text> : null}
+              <Text style={[styles.mTitle, mobilePalette?.heading && { color: mobilePalette.heading }]} accessibilityRole="header">{mobileTitle || `${heading}${highlight ? ` ${highlight}` : ''}`}</Text>
+              {mobileSubtitle || intro ? <Text style={[styles.mSub, mobilePalette?.body && { color: mobilePalette.body }]}>{mobileSubtitle || intro}</Text> : null}
             </View>
           ) : null}
           {children}
@@ -152,6 +204,9 @@ const styles = StyleSheet.create({
   stepNumText: { fontFamily: fonts.semibold, fontSize: 14, color: colors.text },
   formSide: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 },
   card: { width: '100%' as any, backgroundColor: '#fff', borderRadius: 18, padding: 34, ...shadow.elevated },
+  mobileBranding: { alignItems: 'center', justifyContent: 'center' },
+  mobileBrandingLogo: { width: 34, height: 34 },
+  mobileBrandingName: { fontFamily: fonts.display, fontSize: 12, color: '#173F32' },
   mTitle: { fontFamily: fonts.display, fontSize: 28, lineHeight: 36, color: colors.navy },
   mSub: { fontFamily: fonts.regular, fontSize: 14.5, lineHeight: 22, color: colors.muted, marginTop: 8 },
 });

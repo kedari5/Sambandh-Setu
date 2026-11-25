@@ -15,8 +15,16 @@ const ICONS: Record<string, { on: any; off: any; label: string }> = {
   Profile: { on: 'person', off: 'person-outline', label: 'Profile' },
 };
 
+const TAB_COLORS = {
+  surface: '#FFF9F8',
+  border: '#E9CFD5',
+  green: colors.navy,
+  rose: '#C14778',
+  roseSoft: '#FBE5ED',
+} as const;
+
 /**
- * Floating 5-slot footer ("06 · Finalized Footer Navigation"): equal widths, Trust Blue active
+ * Floating 5-slot footer: equal-width slots with a theme-colored active circle
  * circle, Setu Guide as the horizontal 8 in the middle. Hidden on desktop (left navigation instead).
  */
 export default function BottomTabBar({ state, navigation }: BottomTabBarProps) {
@@ -45,7 +53,7 @@ export default function BottomTabBar({ state, navigation }: BottomTabBarProps) {
               style={styles.slot}
             >
               <View style={[styles.circle, guide && !focused && styles.guideIdle, focused && styles.active]}>
-                <Ionicons name={focused ? meta.on : meta.off} size={guide ? 26 : 22} color={focused ? '#fff' : guide ? colors.primary : colors.text} />
+                <Ionicons name={focused ? meta.on : meta.off} size={guide ? 26 : 22} color={focused ? '#fff' : guide ? TAB_COLORS.rose : TAB_COLORS.green} />
                 {dots[route.name] ? <View style={styles.dot} accessibilityLabel="New activity" /> : null}
               </View>
             </Pressable>
@@ -58,10 +66,10 @@ export default function BottomTabBar({ state, navigation }: BottomTabBarProps) {
 
 const styles = StyleSheet.create({
   wrap: { position: 'absolute', left: 16, right: 16, alignItems: 'center' },
-  bar: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 36, height: 68, width: '100%' as any, maxWidth: 460, paddingHorizontal: 8, alignItems: 'center', borderWidth: 1, borderColor: '#EEF2F7', ...shadow.elevated },
+  bar: { flexDirection: 'row', backgroundColor: TAB_COLORS.surface, borderRadius: 36, height: 68, width: '100%' as any, maxWidth: 460, paddingHorizontal: 8, alignItems: 'center', borderWidth: 1, borderColor: TAB_COLORS.border, ...shadow.elevated },
   slot: { flex: 1, alignItems: 'center', justifyContent: 'center', height: 64 },
   circle: { width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center' },
-  guideIdle: { backgroundColor: colors.primarySoft },
-  active: { backgroundColor: colors.primary, ...shadow.button },
-  dot: { position: 'absolute', top: 9, right: 10, width: 9, height: 9, borderRadius: 5, backgroundColor: colors.dangerStrong, borderWidth: 1.5, borderColor: '#fff' },
+  guideIdle: { backgroundColor: TAB_COLORS.roseSoft },
+  active: { backgroundColor: TAB_COLORS.rose, shadowColor: TAB_COLORS.rose, shadowOpacity: 0.18, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 4 },
+  dot: { position: 'absolute', top: 9, right: 10, width: 9, height: 9, borderRadius: 5, backgroundColor: TAB_COLORS.rose, borderWidth: 1.5, borderColor: TAB_COLORS.surface },
 });

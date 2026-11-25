@@ -10,9 +10,9 @@ import { VerifiedTick } from '../../components/People';
 import { nameAge } from '../../utils/format';
 
 const HELP = [
-  { key: 'help_me_understand', title: 'Understand', text: "Learn about each other's values and lifestyle.", icon: 'book-outline', tint: 'blue' },
-  { key: 'reflect', title: 'Reflect', text: 'Explore your thoughts and feelings privately.', icon: 'heart-outline', tint: 'pink' },
-  { key: 'conversation_ideas', title: 'Discuss', text: 'Get conversation ideas for important topics.', icon: 'chatbubbles-outline', tint: 'purple' },
+  { key: 'help_me_understand', title: 'Understand', text: "Learn about each other's values and lifestyle.", icon: 'book-outline', tint: 'green' },
+  { key: 'reflect', title: 'Reflect', text: 'Explore your thoughts and feelings privately.', icon: 'heart-outline', tint: 'green' },
+  { key: 'conversation_ideas', title: 'Discuss', text: 'Get conversation ideas for important topics.', icon: 'chatbubbles-outline', tint: 'green' },
   { key: 'privacy_safety', title: 'Navigate', text: 'Stay informed with privacy, safety and helpful guidance.', icon: 'compass-outline', tint: 'green' },
 ] as const;
 
@@ -43,7 +43,7 @@ export default function GuideHome({ navigation }: any) {
       <Card>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <View style={{ flex: 1 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><Ionicons name="add" size={18} color={colors.primary} /><Text style={styles.h}>Setu Guide AI</Text></View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><Ionicons name="add" size={18} color={colors.navy} /><Text style={styles.h}>Setu Guide AI</Text></View>
             <Text style={[styles.body, { marginVertical: 8 }]}>Chat with Setu Guide for personalised guidance, conversation ideas and insights.</Text>
             <Button title="Chat with Setu Guide" variant="outline" size="sm" arrow full={false} onPress={() => navigation.navigate('GuideChat', { connectionId: j?.connection.id })} />
           </View>
@@ -56,14 +56,14 @@ export default function GuideHome({ navigation }: any) {
           <Text style={[styles.body, { marginBottom: 12 }]}>A step-by-step guide to build a meaningful connection.</Text>
           {j.stages.map((s, i) => (
             <View key={s.key} style={{ flexDirection: 'row', gap: 10, marginBottom: 12 }}>
-              {s.status === 'completed' ? <Ionicons name="checkmark-circle" size={22} color={colors.success} /> : (
+              {s.status === 'completed' ? <Ionicons name="checkmark-circle" size={22} color={colors.navy} /> : (
                 <View style={[styles.num, s.status === 'current' && { backgroundColor: colors.primary, borderColor: colors.primary }]}><Text style={[styles.numText, s.status === 'current' && { color: '#fff' }]}>{i + 1}</Text></View>
               )}
               <View style={{ flex: 1 }}><Text style={[styles.stageT, s.status === 'current' && { color: colors.primary }]}>{s.title}</Text><Text style={styles.small}>{s.short}</Text></View>
               <Text style={[styles.small, s.status === 'completed' && { color: colors.success }, s.status === 'current' && { color: colors.primary, fontFamily: fonts.semibold }]}>{s.status === 'completed' ? 'Completed' : s.status === 'current' ? 'Current' : 'Upcoming'}</Text>
             </View>
           ))}
-          <View style={styles.note}><Ionicons name="infinite" size={16} color={colors.primary} /><Text style={[styles.small, { flex: 1 }]}>You can pause, take more time, or revisit any stage. There is no rush.</Text></View>
+          <View style={styles.note}><Ionicons name="infinite" size={16} color={colors.navy} /><Text style={[styles.small, { flex: 1 }]}>You can pause, take more time, or revisit any stage. There is no rush.</Text></View>
         </Card>
       ) : null}
     </>
@@ -101,7 +101,7 @@ export default function GuideHome({ navigation }: any) {
           <View style={{ marginVertical: space.lg }}><JourneyStepper stages={j.stages} compact showDesc={false} /></View>
           <View style={styles.current}>
             <View style={{ flexDirection: 'row', gap: 12, alignItems: 'flex-start' }}>
-              <View style={styles.bulb}><Ionicons name="bulb-outline" size={20} color={colors.primary} /></View>
+              <View style={styles.bulb}><Ionicons name="bulb-outline" size={20} color={colors.navy} /></View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.over}>CURRENT STAGE</Text>
                 <Text style={styles.curT}>{current.title}</Text>
@@ -112,7 +112,7 @@ export default function GuideHome({ navigation }: any) {
           </View>
         </Card>
       ) : (
-        <Card><EmptyState icon="infinite" tint="blue" title="No active journey yet" text="Your Setu journey begins when you and someone both agree to connect." action="Explore Discover" onAction={() => navigation.navigate('Connections', { tab: 'discover' })} /></Card>
+        <Card><EmptyState icon="infinite" tint="green" title="No active journey yet" text="Your Setu journey begins when you and someone both agree to connect." action="Explore Discover" onAction={() => navigation.navigate('Connections', { tab: 'discover' })} /></Card>
       )}
 
       <Text style={[styles.h, { marginTop: space.xl, marginBottom: space.md }]}>How Setu Guide can help you</Text>
@@ -129,7 +129,7 @@ export default function GuideHome({ navigation }: any) {
           <Text style={[styles.h, { marginTop: space.xl, marginBottom: space.md }]}>Tips for a meaningful journey</Text>
           <View style={{ flexDirection: 'row', gap: 12 }}>
             {TIPS.map((t) => (
-              <View key={t.title} style={styles.tip}><Ionicons name={t.icon} size={20} color={colors.primary} /><Text style={styles.helpT}>{t.title}</Text><Text style={styles.small}>{t.text}</Text></View>
+              <View key={t.title} style={styles.tip}><Ionicons name={t.icon} size={20} color={colors.navy} /><Text style={styles.helpT}>{t.title}</Text><Text style={styles.small}>{t.text}</Text></View>
             ))}
           </View>
         </>
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   h: { fontFamily: fonts.semibold, fontSize: 16.5, color: colors.text },
   body: { fontFamily: fonts.regular, fontSize: 13.5, lineHeight: 20, color: colors.muted },
   small: { fontFamily: fonts.regular, fontSize: 12, lineHeight: 17, color: colors.muted },
-  banner: { flexDirection: 'row', backgroundColor: '#E3EDFC', borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: colors.primaryLine },
+  banner: { flexDirection: 'row', backgroundColor: colors.greenSurface, borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: colors.primaryLine },
   bannerT: { fontFamily: fonts.bold, fontSize: 20, lineHeight: 27, color: colors.navy },
   name: { fontFamily: fonts.semibold, fontSize: 15.5, color: colors.text },
   current: { backgroundColor: colors.primarySoft, borderRadius: radius.card, padding: 16, borderWidth: 1, borderColor: colors.primaryLine },

@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState, Platform } from 'react-native';
-import { API_BASE, FeatureKey, FeatureState, FeaturesApi, RealtimeSnapshot, tokenStore } from '../api';
+import { API_BASE, errorMessage, FeatureKey, FeatureState, FeaturesApi, RealtimeSnapshot, tokenStore } from '../api';
 import { useAuth } from './AuthContext';
 
 /**
@@ -25,6 +25,8 @@ const ALL_ON = {
   photo_uploads: true, realtime_stream: true, maintenance: false, announcement: false,
 } as Record<FeatureKey, boolean>;
 
+const isFeatureKey = (key: string): key is FeatureKey => Object.prototype.hasOwnProperty.call(ALL_ON, key);
+
 const Ctx = createContext<Live>({
   features: ALL_ON, announcement: null, maintenance: null, snapshot: null, transport: 'off',
   on: () => true, refreshFeatures: async () => {},
@@ -38,13 +40,39 @@ export function LiveProvider({ children }: { children: React.ReactNode }) {
   const [snapshot, setSnapshot] = useState<RealtimeSnapshot | null>(null);
   const [transport, setTransport] = useState<'stream' | 'poll' | 'off'>('off');
   const versionRef = useRef('');
+  const featureRefreshFailed = useRef(false);
 
   const refreshFeatures = useCallback(async () => {
     try {
       const f = await FeaturesApi.get();
-      versionRef.current = f.version;
-      setState(f);
-    } catch { /* keep the last known flags */ }
+      if (!f || typeof f !== 'object') {
+        if (!featureRefreshFailed.current) console.warn('Feature API returned an invalid response; retaining the last known feature flags.');
+        featureRefreshFailed.current = true;
+        return;
+      }
+
+      const receivedFeatures: Partial<Record<FeatureKey, boolean>> = {};
+      if (f.features && typeof f.features === 'object' && !Array.isArray(f.features)) {
+        for (const [key, enabled] of Object.entries(f.features)) {
+          if (isFeatureKey(key) && typeof enabled === 'boolean') receivedFeatures[key] = enabled;
+        }
+      } else {
+        if (!featureRefreshFailed.current) console.warn('Feature API response is missing its feature map; retaining the last known feature flags.');
+        featureRefreshFailed.current = true;
+        return;
+      }
+
+      featureRefreshFailed.current = false;
+      if (typeof f.version === 'string') versionRef.current = f.version;
+      setState((prev) => ({
+        ...prev,
+        ...f,
+        features: { ...prev.features, ...receivedFeatures },
+      }));
+    } catch (error) {
+      if (!featureRefreshFailed.current) console.warn(`Feature API refresh failed; retaining the last known feature flags. ${errorMessage(error)}`);
+      featureRefreshFailed.current = true;
+    }
   }, []);
 
   // Feature flags: on start, on sign-in/out, and every minute as a safety net.
@@ -61,7 +89,7 @@ export function LiveProvider({ children }: { children: React.ReactNode }) {
   }, [refreshFeatures]);
 
   // Realtime: stream on the web when allowed, otherwise poll.
-  const streamAllowed = Platform.OS === 'web' && state.features.realtime_stream;
+  const streamAllowed = Platform.OS === 'web' && state.features?.realtime_stream === true;
   useEffect(() => {
     if (!user) { setTransport('off'); setSnapshot(null); return; }
     let stopped = false;

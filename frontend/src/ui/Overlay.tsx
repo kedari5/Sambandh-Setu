@@ -1,10 +1,13 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { Animated, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Animated, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import type { TextInputProps } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, radius, shadow, space, TintName } from '../theme';
 import { useLayout } from '../hooks/useLayout';
 import { Button } from './Button';
 import type { IconName } from './Basics';
+
+const webInput: any = Platform.OS === 'web' ? { outlineStyle: 'none' } : null;
 
 /** Bottom sheet on phones, centred dialog on desktop. */
 export function Sheet({ visible, onClose, children, title, maxWidth = 460 }: { visible: boolean; onClose: () => void; children: React.ReactNode; title?: string; maxWidth?: number }) {
@@ -27,23 +30,65 @@ export function Sheet({ visible, onClose, children, title, maxWidth = 460 }: { v
   );
 }
 
-export function SelectSheet({ visible, title, options, value, onSelect, onClose }: { visible: boolean; title: string; options: { value: string; label: string; description?: string }[]; value: string; onSelect: (v: string) => void; onClose: () => void }) {
+export function SelectSheet({ visible, title, options, value, onSelect, onClose, allowCustom = false, customLabel = 'Enter manually', customPlaceholder = 'Enter a value', customKeyboardType, customMaxLength }: {
+  visible: boolean; title: string; options: { value: string; label: string; description?: string }[]; value: string; onSelect: (v: string) => void; onClose: () => void;
+  allowCustom?: boolean; customLabel?: string; customPlaceholder?: string; customKeyboardType?: TextInputProps['keyboardType']; customMaxLength?: number;
+}) {
+  const [manualEntry, setManualEntry] = useState(false);
+  const [manualValue, setManualValue] = useState(value);
+  const [customFocused, setCustomFocused] = useState(false);
+  useEffect(() => {
+    if (visible) {
+      setManualEntry(false);
+      setManualValue(value);
+    }
+  }, [visible, value]);
+
   return (
     <Sheet visible={visible} onClose={onClose} title={title}>
-      <ScrollView style={{ maxHeight: 420 }} contentContainerStyle={{ paddingBottom: space.md }}>
-        {options.map((o) => {
-          const on = o.value === value;
-          return (
-            <Pressable key={o.value} onPress={() => onSelect(o.value)} accessibilityRole="radio" accessibilityState={{ checked: on }}
-              style={({ hovered }: any) => [styles.option, on && { backgroundColor: colors.primarySoft }, hovered && !on && { backgroundColor: colors.bg }]}>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.optionText, on && { color: colors.primary, fontFamily: fonts.semibold }]}>{o.label}</Text>
-                {o.description ? <Text style={styles.optionDesc}>{o.description}</Text> : null}
-              </View>
-              {on ? <Ionicons name="checkmark" size={18} color={colors.primary} /> : null}
-            </Pressable>
-          );
-        })}
+      <ScrollView style={{ maxHeight: 420 }} contentContainerStyle={{ paddingBottom: space.lg }}>
+        {manualEntry ? (
+          <View>
+            <TextInput
+              value={manualValue}
+              onChangeText={setManualValue}
+              placeholder={customPlaceholder}
+              keyboardType={customKeyboardType}
+              maxLength={customMaxLength}
+              accessibilityLabel={customLabel}
+              onFocus={() => setCustomFocused(true)}
+              onBlur={() => setCustomFocused(false)}
+              style={[styles.customInput, webInput, customFocused && styles.customInputFocused]}
+            />
+            <View style={{ flexDirection: 'row', gap: space.md, marginTop: space.lg }}>
+              <View style={{ flex: 1 }}><Button title="Back to options" variant="ghost" size="sm" onPress={() => setManualEntry(false)} /></View>
+              <View style={{ flex: 1 }}><Button title="Use value" size="sm" onPress={() => onSelect(manualValue.trim())} disabled={!manualValue.trim()} /></View>
+            </View>
+          </View>
+        ) : (
+          <>
+            {options.map((o) => {
+              const on = o.value === value;
+              return (
+                <Pressable key={o.value} onPress={() => onSelect(o.value)} accessibilityRole="radio" accessibilityState={{ checked: on }}
+                  style={({ hovered }: any) => [styles.option, on && { backgroundColor: colors.primarySoft }, hovered && !on && { backgroundColor: colors.primarySoft }]}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.optionText, on && { color: colors.primary, fontFamily: fonts.semibold }]}>{o.label}</Text>
+                    {o.description ? <Text style={styles.optionDesc}>{o.description}</Text> : null}
+                  </View>
+                  {on ? <Ionicons name="checkmark" size={18} color={colors.primary} /> : null}
+                </Pressable>
+              );
+            })}
+            {allowCustom ? (
+              <Pressable onPress={() => setManualEntry(true)} accessibilityRole="button"
+                style={({ hovered }: any) => [styles.option, hovered && { backgroundColor: colors.primarySoft }]}>
+                <View style={{ flex: 1 }}><Text style={styles.customOptionText}>{customLabel}</Text></View>
+                <Ionicons name="create-outline" size={18} color={colors.primary} />
+              </Pressable>
+            ) : null}
+          </>
+        )}
       </ScrollView>
     </Sheet>
   );
@@ -85,9 +130,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const timer = useRef<any>(null);
   const show = useCallback((message: string, tone: 'success' | 'error' | 'info' = 'success') => {
     setToast({ message, tone });
-    Animated.timing(opacity, { toValue: 1, duration: 160, useNativeDriver: true }).start();
+    Animated.timing(opacity, { toValue: 1, duration: 160, useNativeDriver: Platform.OS !== 'web' }).start();
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => Animated.timing(opacity, { toValue: 0, duration: 200, useNativeDriver: true }).start(() => setToast(null)), 2600);
+    timer.current = setTimeout(() => Animated.timing(opacity, { toValue: 0, duration: 200, useNativeDriver: Platform.OS !== 'web' }).start(() => setToast(null)), 2600);
   }, [opacity]);
   useEffect(() => () => clearTimeout(timer.current), []);
   return (
@@ -118,6 +163,9 @@ const styles = StyleSheet.create({
   option: { flexDirection: 'row', alignItems: 'center', minHeight: 48, paddingHorizontal: 12, borderRadius: radius.sm },
   optionText: { fontFamily: fonts.medium, fontSize: 15, color: colors.text },
   optionDesc: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.muted, marginTop: 2 },
+  customOptionText: { fontFamily: fonts.semibold, fontSize: 14, color: colors.primary },
+  customInput: { minHeight: 48, borderWidth: 1, borderColor: colors.border, borderRadius: radius.input, backgroundColor: colors.surface, paddingHorizontal: 14, fontFamily: fonts.regular, fontSize: 15, color: colors.text },
+  customInputFocused: { borderColor: colors.primary, borderWidth: 1.5 },
   confirmIcon: { width: 60, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', marginBottom: space.md },
   confirmTitle: { fontFamily: fonts.bold, fontSize: 19, color: colors.text, textAlign: 'center' },
   confirmMsg: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 21, color: colors.muted, textAlign: 'center', marginTop: 8 },
